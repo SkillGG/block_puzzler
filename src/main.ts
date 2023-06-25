@@ -1,5 +1,8 @@
 import "./style.css";
 import { Game } from "./game";
+import { DevConsole } from "./console";
+import { getHTMLBoxes } from "./util";
+import { GameOptions } from "./options";
 
 let running = true;
 
@@ -9,9 +12,28 @@ declare global {
     }
 }
 
-const game = (window.game = new Game(() => (running = false)));
+const [gameBox, consoleBox, optionsBox] = getHTMLBoxes([
+    "#gameBox",
+    "#consoleBox",
+    "#optionsBox",
+]);
 
-document.body.append(window.game);
+if (!gameBox || !consoleBox || !optionsBox)
+    throw new Error("Could not find the boxes!");
+
+const devConsole = (window.gameconsole = new DevConsole(
+    consoleBox as HTMLDivElement
+));
+
+const options = (window.options = new GameOptions());
+
+const game = (window.game = new Game(
+    () => (running = false),
+    devConsole,
+    options
+));
+
+gameBox.append(game);
 
 /** Game loop */
 let previousUPS = 0;

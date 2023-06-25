@@ -1,9 +1,21 @@
+import { DevConsole } from "./console";
 import { FpsCounter } from "./fpsCounter";
+import { GameOptions } from "./options";
 export class Game extends HTMLCanvasElement {
     canvasContext: CanvasRenderingContext2D;
     fpsCounter: FpsCounter;
-    constructor(stop: () => void) {
+    readonly gameHeight: number = 800;
+    readonly gameWidth: number = 600;
+    readonly devConsole: DevConsole;
+    readonly options: GameOptions;
+    constructor(
+        stop: () => void,
+        devConsole: DevConsole,
+        options: GameOptions
+    ) {
         super();
+        this.options = options;
+        this.devConsole = devConsole;
         this.fpsCounter = new FpsCounter();
         const cC = this.getContext("2d");
         if (!cC) {
@@ -12,8 +24,8 @@ export class Game extends HTMLCanvasElement {
             return;
         }
         this.canvasContext = cC;
-        this.width = 800;
-        this.height = 600;
+        this.width = this.gameWidth;
+        this.height = this.gameHeight;
     }
     run() {
         if (this.canvasContext) this.setupGameLoop();
