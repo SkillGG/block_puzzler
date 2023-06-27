@@ -1,20 +1,25 @@
 import "./style.css";
 import { Game } from "./game";
 import { DevConsole } from "./console";
-import { getHTMLBoxes } from "./util";
+import { getHTMLBoxes } from "@utils/utils";
 import { GameOptions } from "./options";
+import { GameMenu } from "@component/Menu/menu";
+import { FpsCounter } from "./gameComponents/FpsCounter/fpsCounter";
 
-let running = true;
+export enum GameState {
+    MENU = "MENU",
+    GAME = "GAME",
+}
 
 declare global {
     interface Window {
-        game: Game;
+        game: Game<GameState>;
     }
 }
 
 const [gameBox, consoleBox, optionsBox] = getHTMLBoxes([
     "#gameBox",
-    "#consoleBox",
+    "#consoleContent",
     "#optionsBox",
 ]);
 
@@ -27,13 +32,25 @@ const devConsole = (window.gameconsole = new DevConsole(
 
 const options = (window.options = new GameOptions());
 
-const game = (window.game = new Game(
-    () => (running = false),
+const game = (window.game = new Game<GameState>(
     devConsole,
-    options
+    options,
+    GameState.MENU
 ));
-
 gameBox.append(game);
+
+/**
+ * Register all GameStates
+ */
+game.manager.registerGameState(...Object.values(GameState));
+/**
+ * Add objects
+ */
+const fpsCounter = new FpsCounter([0, 0]);
+game.manager.addObject(fpsCounter, GameState.GAME);
+game.manager.addObject(fpsCounter, GameState.MENU);
+
+game.manager.addObjectManager(new GameMenu(game.manager));
 
 /** Game loop */
 let previousUPS = 0;
@@ -51,6 +68,9 @@ function loop(curtime: number) {
         game.render();
         previousFPS = curtime;
     }
-    if (running) window.requestAnimationFrame(loop);
+    if (game.running) window.requestAnimationFrame(loop);
 }
+
+game.run();
+
 window.requestAnimationFrame(loop);

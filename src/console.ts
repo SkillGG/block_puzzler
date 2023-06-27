@@ -1,6 +1,6 @@
-import { $ } from "./util";
+import { $ } from "@utils/utils";
 
-enum LogType {
+export enum LogType {
     INFO = "info",
     ERROR = "error",
     WARN = "warn",
@@ -20,8 +20,12 @@ declare global {
 export class DevConsole {
     consoleWindow: HTMLDivElement;
     logs: Log[] = [];
+
+    static instance: DevConsole;
+
     constructor(element: HTMLDivElement) {
         this.consoleWindow = element;
+        DevConsole.instance = this;
     }
     clearConsole() {
         for (const child of Array.from(this.consoleWindow.children))
@@ -37,21 +41,20 @@ export class DevConsole {
                         props: { class: "logType" },
                         _html: log.type.toUpperCase(),
                     }),
+                    $``({
+                        props: { class: "logMessage" },
+                        _html: log.message,
+                    }),
                 ],
             });
-            const typeEl = document.createElement("div");
-            const msgEl = document.createElement("div");
-            logEl.append(typeEl, msgEl);
-            typeEl.classList.add("logType");
-            msgEl.classList.add("logMessage");
-            msgEl.innerHTML = log.message;
-            typeEl.innerHTML = log.type.toUpperCase();
             this.consoleWindow.append(logEl);
         });
     }
     addLog(l: Log) {
-        console.log("adding new log");
         this.logs.push(l);
         this.redrawLogs();
+    }
+    static newLog(l: Log) {
+        DevConsole.instance?.addLog(l);
     }
 }
