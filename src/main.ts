@@ -52,25 +52,47 @@ game.manager.addObject(fpsCounter, GameState.MENU);
 
 game.manager.addObjectManager(new GameMenu(game.manager));
 
-/** Game loop */
-let previousUPS = 0;
-let previousFPS = 0;
-const targetUPS = 60;
+// /** Game loop */
+// let previousUPS = Date.now();
+// let previousFPS = Date.now();
+// function loop() {
+//     const curtime = Date.now();
+//     if (game.running) window.requestAnimationFrame(loop);
+//     console.log(curtime, previousFPS);
+//     const updateDelta = curtime - previousUPS;
+//     const frameDelta = curtime - previousFPS;
+//     console.log(updateDelta, 1000 / targetUPS);
+//     if (updateDelta > 1000 / targetUPS) {
+//         game.update(updateDelta);
+//         previousUPS = curtime;
+//     }
+//     if (frameDelta > 1000 / targetFPS) {
+//         game.render();
+//         previousFPS = curtime;
+//     }
+// }
+
 const targetFPS = 60;
-function loop(curtime: number) {
-    const updateDelta = curtime - previousUPS;
-    const frameDelta = curtime - previousFPS;
-    if (updateDelta / 1000 > 1 / targetUPS) {
-        game.update(updateDelta);
-        previousUPS = curtime;
-    }
-    if (frameDelta / 1000 > 1 / targetFPS) {
+const fpsInterval: number = 1000 / targetFPS;
+let previous: number, start: number, curtime: number, timeDelta: number;
+
+let prevUpdate = 0;
+function loop() {
+    requestAnimationFrame(loop);
+    curtime = performance.now();
+    timeDelta = curtime - previous;
+    if (timeDelta > fpsInterval) {
+        fpsCounter.curTime = curtime;
+        previous = curtime - (timeDelta % fpsInterval);
+        game.update(timeDelta);
         game.render();
-        previousFPS = curtime;
+        prevUpdate = timeDelta;
     }
-    if (game.running) window.requestAnimationFrame(loop);
 }
 
 game.run();
 
-window.requestAnimationFrame(loop);
+start = previous = performance.now();
+loop();
+
+// window.requestAnimationFrame(loop);

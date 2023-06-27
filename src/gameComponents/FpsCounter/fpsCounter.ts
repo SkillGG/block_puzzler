@@ -9,32 +9,36 @@ export class FpsCounter extends GameObject {
     constructor(pos: Vector2) {
         super("fpsCounter");
         this.label = new Label("fpsLabel", new RectangleBounds(pos, [0, 0]));
+        this.createTime = this.curTime = performance.now();
     }
-    upsCount: number = 0;
+    createTime: number;
     upsDelta: number = 0;
     fpsCount: number = 0;
     fpsValues: number[] = [];
+    curTime: number;
     static readonly fpsAverageCount: number = 5;
     update(timeStep: number) {
-        this.upsCount++;
+        var currentFps =
+            Math.round(
+                (1000 / ((this.curTime - this.createTime) / this.fpsCount)) *
+                    100
+            ) / 100;
         this.upsDelta += timeStep;
         if (this.upsDelta > 1000) {
-            this.fpsValues.push(this.fpsCount);
+            this.fpsValues.push(currentFps);
             if (this.fpsValues.length > FpsCounter.fpsAverageCount)
                 this.fpsValues = this.fpsValues.filter(
                     (_, i, a) => i > a.length - FpsCounter.fpsAverageCount
                 );
-            this.upsCount = 0;
             this.upsDelta = 0;
-            this.fpsCount = 0;
         }
-    }
-    addRender() {
-        this.fpsCount++;
     }
     getAverageFPS() {
         if (this.fpsValues.length > 0)
-            return Math.round(this.fpsValues.reduce((p, n) => (p + n) / 2));
+            return Math.round(
+                this.fpsValues.reduce((p, n) => p + n, 0) /
+                    this.fpsValues.length
+            );
         return 0;
     }
     render(ctx: CanvasRenderingContext2D) {
