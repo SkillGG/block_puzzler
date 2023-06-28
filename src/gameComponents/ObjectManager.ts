@@ -1,6 +1,7 @@
 import { Game } from "@/game";
-import { GameObject, GameObjectManager } from "./GameObject";
-import { Renderable, Updateable } from "./interfaces";
+import { GameObject } from "@component/GameObject";
+import { Renderable, Updateable } from "@component/interfaces";
+import { StateManager } from "@component/StateManager";
 
 export class ObjectManager<AvailableStates extends string>
     implements Updateable, Renderable
@@ -8,7 +9,7 @@ export class ObjectManager<AvailableStates extends string>
     game: Game<AvailableStates>;
 
     stateObjects: Map<AvailableStates, GameObject[]>;
-    objectManagers: GameObjectManager<any>[] = [];
+    objectManagers: StateManager<any>[] = [];
     currentState: AvailableStates;
 
     constructor(g: Game<AvailableStates>, defaultState: AvailableStates) {
@@ -20,18 +21,41 @@ export class ObjectManager<AvailableStates extends string>
         for (const s of states)
             if (!this.stateObjects.has(s)) this.stateObjects.set(s, []);
     }
-    addObjectManager<T extends string>(om: GameObjectManager<T>) {
+    addObjectManager<T extends string>(om: StateManager<T>) {
         this.objectManagers.push(om);
     }
-    getObjectManager<T extends GameObjectManager<any>>(omid: string) {
+    getObjectManager<T extends StateManager<any>>(omid: string) {
         return (this.objectManagers.find((f) => f.id === omid) as T) || null;
     }
+
+    private divideByZ = (objects: GameObject[]): GameObject[][] => {
+        const zLayers: Map<number, GameObject[]> = new Map();
+
+        for (let i = 0; i < objects.length; i++) {
+            const o = objects[i];
+            if (zLayers.has(o.zIndex)) {
+                zLayers.get(o.zIndex)!.push(o);
+            } else {
+                zLayers.set(o.zIndex, [o]);
+            }
+        }
+
+        return [...zLayers]
+            .sort((a, b) => a[0] - b[0])
+            .map((layer) => layer[1]);
+    };
+
     render(ctx: CanvasRenderingContext2D) {
-        this.stateObjects.get(this.currentState)?.forEach((obj) => {
-            ctx.beginPath();
-            obj.render(ctx);
-            ctx.closePath();
-        });
+        const objectsFromThisState = this.stateObjects.get(this.currentState);
+        if (objectsFromThisState) {
+            this.divideByZ(objectsFromThisState).forEach((z) => {
+                z.forEach((obj) => {
+                    ctx.beginPath();
+                    obj.render(ctx);
+                    ctx.closePath();
+                });
+            });
+        }
     }
     getStateObjects(state: AvailableStates) {
         const sObjs = this.stateObjects.get(state);
@@ -57,6 +81,11 @@ export class ObjectManager<AvailableStates extends string>
         return (sObjs.find((o) => o.id === id) as T) || null;
     }
     update(time: number) {
+        this.objectManagers
+            .filter((om) => om.state === this.currentState)
+            .forEach((om) => {
+                om.update(time);
+            });
         this.stateObjects.get(this.currentState)?.forEach((obj) => {
             obj.update(time);
         });

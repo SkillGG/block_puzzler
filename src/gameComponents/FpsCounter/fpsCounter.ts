@@ -25,6 +25,8 @@ export class FpsCounter extends GameObject {
             ) / 100;
         this.upsDelta += timeStep;
         if (this.upsDelta > 1000) {
+            this.createTime = this.curTime;
+            this.fpsCount = 0;
             this.fpsValues.push(currentFps);
             if (this.fpsValues.length > FpsCounter.fpsAverageCount)
                 this.fpsValues = this.fpsValues.filter(

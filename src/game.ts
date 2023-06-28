@@ -1,4 +1,4 @@
-import { DevConsole } from "@/console";
+import { DevConsole, LogType } from "@/console";
 
 import { InputManager } from "@component/KeyboardManager";
 import { ObjectManager } from "@component/ObjectManager";
@@ -83,3 +83,26 @@ export class Game<T extends string>
     }
 }
 customElements.define("game-", Game, { extends: "canvas" });
+export const Log = (type: LogType = LogType.INFO, ...msg: any[]) => {
+    DevConsole.newLog({
+        message: msg.reduce((p, n) => {
+            if (typeof n === "object" && !Array.isArray(n)) {
+                return `${p} {${Object.entries(n).reduce((q, z) => {
+                    return `${q},${z[0]}:${z[1]}`;
+                }, "")}}`;
+            }
+            return `${p} ${n.toString()}`;
+        }, ""),
+        type,
+    });
+};
+
+export const LogI = (...msg: any[]) => {
+    Log(LogType.INFO, ...msg);
+};
+export const LogW = (...msg: any[]) => {
+    Log(LogType.WARN, ...msg);
+};
+export const LogE = (...msg: any[]) => {
+    Log(LogType.ERROR, ...msg);
+};

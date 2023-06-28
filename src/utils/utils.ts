@@ -4,6 +4,8 @@
 
 export type Vector2 = [number, number];
 export type Vector3 = [number, number, number];
+export type Vector_2 = { x: number; y: number };
+export type Vector_3 = { x: number; y: number };
 
 export const crossProduct = ([Ax, Ay, Az]: Vector3, [Bx, By, Bz]: Vector3) => [
     Ay * Bz - Az * By,
@@ -49,4 +51,8 @@ export const $ =
 
 export const getHTMLBoxes = (s: string[]) => {
     return s.map((q) => document.querySelector(q));
+};
+
+export const randomInt = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 };

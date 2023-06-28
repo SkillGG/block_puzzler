@@ -23,16 +23,22 @@ export class DevConsole {
 
     static instance: DevConsole;
 
+    lockScroll = false;
+
     constructor(element: HTMLDivElement) {
         this.consoleWindow = element;
         DevConsole.instance = this;
     }
-    clearConsole() {
+    clear() {
+        this.logs = [];
+        this.clearDOM();
+    }
+    clearDOM() {
         for (const child of Array.from(this.consoleWindow.children))
             child.remove();
     }
     redrawLogs() {
-        this.clearConsole();
+        this.clearDOM();
         this.logs.forEach((log) => {
             const logEl = $``({
                 props: { class: "log", "data-type": log.type },
@@ -53,6 +59,11 @@ export class DevConsole {
     addLog(l: Log) {
         this.logs.push(l);
         this.redrawLogs();
+        if (!this.lockScroll) {
+            this.consoleWindow.parentElement?.scrollTo({
+                top: 9999999,
+            });
+        }
     }
     static newLog(l: Log) {
         DevConsole.instance?.addLog(l);

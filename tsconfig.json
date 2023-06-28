@@ -18,10 +18,10 @@
         "jsxFragmentFactory": "Fragment",
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"],
             "@component/*": ["./src/gameComponents/*"],
             "@utils/*": ["./src/utils/*"],
-            "@primitive/*": ["./src/gameComponents/Primitives/*"]
+            "@primitive/*": ["./src/gameComponents/Primitives/*"],
+            "@/*": ["./src/*"]
         }
     },
     "include": ["./src"]

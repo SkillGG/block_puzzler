@@ -5,6 +5,7 @@ import { getHTMLBoxes } from "@utils/utils";
 import { GameOptions } from "./options";
 import { GameMenu } from "@component/Menu/menu";
 import { FpsCounter } from "./gameComponents/FpsCounter/fpsCounter";
+import { Playfield } from "@component/Playfield/playfield";
 
 export enum GameState {
     MENU = "MENU",
@@ -51,6 +52,7 @@ game.manager.addObject(fpsCounter, GameState.GAME);
 game.manager.addObject(fpsCounter, GameState.MENU);
 
 game.manager.addObjectManager(new GameMenu(game.manager));
+game.manager.addObjectManager(new Playfield(game.manager));
 
 /**
  * Game loop
@@ -59,7 +61,6 @@ game.manager.addObjectManager(new GameMenu(game.manager));
 const targetFPS = 60;
 const fpsInterval: number = 1000 / targetFPS;
 let previous: number;
-let start: number;
 let curtime: number;
 let timeDelta: number;
 
@@ -77,5 +78,5 @@ function loop() {
 
 game.run();
 
-start = previous = performance.now();
+previous = performance.now();
 loop();

@@ -1,17 +1,17 @@
-import { DevConsole, LogType } from "@/console";
-import { Game } from "@/game";
+import { Game, Log, LogI } from "@/game";
 import { GameState } from "@/main";
-import { GameObject, GameObjectManager } from "@component/GameObject";
+import { GameObject } from "@component/GameObject";
 import { ObjectManager } from "@component/ObjectManager";
 import { Button, ButtonClickEvent } from "@primitive/Button/button";
 import { Label, LabelWithBorderStyle } from "@primitive/Label/Label";
 import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
+import { StateManager } from "@component/StateManager";
+import { Playfield } from "@component/Playfield/playfield";
 
-export class GameMenu extends GameObjectManager<GameState> {
+export class GameMenu extends StateManager<GameState> {
     menuLabel: Label;
     startButton: Button;
-    tryLog: Button;
-    tryAddingOption: Button;
+    static DefaultID = "menu";
     constructor(manager: ObjectManager<GameState>) {
         super("menu", manager, GameState.MENU);
 
@@ -35,7 +35,7 @@ export class GameMenu extends GameObjectManager<GameState> {
             "BlockPuzzler",
             labelStyle
         );
-        
+
         this.startButton = new Button(
             "start_button",
             new RectangleBounds(
@@ -45,6 +45,7 @@ export class GameMenu extends GameObjectManager<GameState> {
                 50
             ),
             {
+                onclick: (e) => this.onClickStart(e),
                 onenter: (e) => {
                     e.target.label.border.style.fillColor = "blue";
                 },
@@ -55,40 +56,14 @@ export class GameMenu extends GameObjectManager<GameState> {
             "START",
             buttonStyle
         );
-        this.tryLog = new Button(
-            "log_button",
-            new RectangleBounds(
-                Game.getWidth() / 2 - 50,
-                Game.getHeigth() / 2 - 225 + 75,
-                100,
-                50
-            ),
-            {
-                onclick: this.onClickStart,
-            },
-            "LOG",
-            buttonStyle
-        );
-        this.tryAddingOption = new Button(
-            "option_button",
-            new RectangleBounds(
-                Game.getWidth() / 2 - 50,
-                Game.getHeigth() / 2 - 225 + 75 + 75,
-                100,
-                50
-            ),
-            {},
-            "ADD OPTION",
-            buttonStyle
-        );
-        this.registerObject<GameObject>(
-            this.menuLabel,
-            this.startButton,
-            this.tryAddingOption,
-            this.tryLog
-        );
+        this.registerObject<GameObject>(this.menuLabel, this.startButton);
     }
-    onClickStart(ev: ButtonClickEvent) {
-        DevConsole.newLog({ message: "log", type: LogType.INFO });
+    onClickStart(_ev: ButtonClickEvent) {
+        this.manager.currentState = GameState.GAME;
+        LogI("Starting the game");
+        this.manager
+            .getObjectManager<Playfield>(Playfield.DefaultID)
+            .startGame(50);
     }
+    update() {}
 }
