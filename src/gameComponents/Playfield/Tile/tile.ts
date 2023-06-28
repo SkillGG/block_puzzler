@@ -1,4 +1,3 @@
-import { LogI } from "@/game";
 import { BoundedGameObject } from "@component/GameObject";
 import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
 import { Vector2, Vector_2 } from "@utils/utils";
@@ -32,7 +31,6 @@ export class Tile extends BoundedGameObject {
         [width, height]: Vector2 = [25, 25]
     ) {
         const [row, col] = coords;
-        LogI(`Creating a tile #${id} @ ${col}/${row}`);
         super(id, new RectangleBounds(0, 0, width, height));
         this.anchor = gridPosition;
         this.size = [width, height];
@@ -107,5 +105,9 @@ export class Tile extends BoundedGameObject {
             this.bounds.width
         );
     }
-    update(time: number): void {}
+    setColor(c: TileColor) {
+        if (!c) return;
+        this.color = c;
+    }
+    update(): void {}
 }

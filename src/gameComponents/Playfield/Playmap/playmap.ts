@@ -3,6 +3,7 @@ import { Tile, TileColor, TileCoords } from "../Tile/tile";
 import { Game, LogE, LogI } from "@/game";
 import { Updateable } from "@component/interfaces";
 import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
+import { Playfield } from "../playfield";
 
 export class PlayMap implements Updateable {
     private pos: Vector_2;
@@ -33,7 +34,17 @@ export class PlayMap implements Updateable {
             );
     }
 
+    get rowNum() {
+        return this._tiles.length;
+    }
+
+    get colNum() {
+        return this._tiles[0].length;
+    }
+
     private playable: boolean = false;
+
+    private numberOfMoves = 0;
 
     constructor(pos: Vector_2) {
         this.pos = pos;
@@ -44,10 +55,20 @@ export class PlayMap implements Updateable {
             const tileRow: Tile[] = [];
             for (let col = 0; col < cols; col++) {
                 tileRow.push(
-                    new Tile(`tile${col + cols * row}`, this.pos, [row, col])
+                    new Tile(
+                        `tile${col + cols * row}`,
+                        this.pos,
+                        [row, col],
+                        [50, 50]
+                    )
                 );
             }
             this._tiles.push(tileRow);
+        }
+
+        const colorTiles = randomInt(3, 5);
+        for (let i = 0; i < colorTiles; i++) {
+            this.getRandomTile().setColor(Playfield.randomTileColor());
         }
 
         // center the map
@@ -59,14 +80,36 @@ export class PlayMap implements Updateable {
         this.playable = true;
     }
 
-    randomizeTileValues(getRandomColor: (t: Tile, n: number) => TileColor) {
+    getRandomTile() {
+        const tiles = this.tiles.flat(1);
+        return tiles[randomInt(0, tiles.length - 1)];
+    }
+
+    getRandomTileWhich(pred: (t: Tile) => boolean) {
+        const predTiles = this.tiles.flat(1).filter(pred);
+        return predTiles[randomInt(0, predTiles.length - 1)];
+    }
+
+    randomizeTileValues(
+        getRandomColor: (
+            t: Tile,
+            n: number,
+            a: Tile[][],
+            moveNum: number
+        ) => TileColor
+    ) {
         LogI("Randomizing colors!");
         let coloredTiles = 0;
         this.eachTile((t) => {
-            const randomColor = getRandomColor(t, coloredTiles);
+            const randomColor = getRandomColor(
+                t,
+                coloredTiles,
+                this.tiles,
+                this.numberOfMoves
+            );
             if (randomColor !== TileColor.NONE && t.color !== randomColor) {
                 LogI("swapping colors for tile", t.id, "to ", randomColor);
-                t.color = randomColor;
+                t.setColor(randomColor);
                 coloredTiles++;
             }
         });
@@ -76,8 +119,8 @@ export class PlayMap implements Updateable {
         return this.tiles;
     }
 
-    getTile(col: number, row: number): Tile | null;
-    getTile(coord: TileCoords): Tile | null;
+    getTile(col: number, row: number): Tile;
+    getTile(coord: TileCoords): Tile;
     getTile(colOrCoords: number | TileCoords, possiblyRow?: number) {
         if (!this.playable) throw "Map not constructed yet!";
         let col: number | undefined, row: number | undefined;
@@ -94,11 +137,14 @@ export class PlayMap implements Updateable {
             typeof row === "number" &&
             row < this.tiles[col].length
         ) {
-            console.log(this.tiles);
             return this.tiles[row][col];
         } else {
-            LogE("Tile not found", col, row);
-            return null;
+            if (typeof col !== "number" || typeof row !== "number") {
+                LogE("Incorrect parameters!");
+            } else if (col >= this.tiles.length || row > this.tiles.length) {
+                LogE("Coords out of bounds", col, row);
+            }
+            throw "Error getting tile";
         }
     }
 
@@ -127,28 +173,11 @@ export class PlayMap implements Updateable {
 
         this.selectedTile = null;
 
-        this.randomizeTileValues((t, n) => {
-            if (t.color !== TileColor.NONE) return t.color;
-            if (n >= 5) return TileColor.NONE;
-            const tilesToGo = this.tiles
-                .flat(1)
-                .filter((t) => t.color === TileColor.NONE).length;
-
-            const probabilityOfchangingColor = Math.min(
-                30 - Math.min(25, tilesToGo),
-                30
-            );
-
-            const rand = randomInt(0, 100);
-
-            if (rand > 1 && rand < 1 + probabilityOfchangingColor)
-                return TileColor.BLUE;
-            if (rand > 31 && rand < 31 + probabilityOfchangingColor)
-                return TileColor.RED;
-            if (rand > 61 && rand < 61 + probabilityOfchangingColor)
-                return TileColor.YELLOW;
-            return TileColor.NONE;
-        });
+        this.getRandomTileWhich((t) => t.color === TileColor.NONE)?.setColor(
+            Playfield.randomTileColor()
+        );
+        this.randomizeTileValues(Playfield.randomTileColor_EASY);
+        this.numberOfMoves++;
     }
 
     selectTile(t: Tile) {
@@ -157,7 +186,35 @@ export class PlayMap implements Updateable {
         t.markSelected();
     }
 
-    update() {
+    clogDelta: number = 0;
+
+    removeClusteredTiles() {
+        this.eachTile((t) => {
+            if (t.coords.row >= this.rowNum - 1) return;
+            if (t.coords.col >= this.colNum - 1) return;
+            const leftTile = this.getTile(t.coords.col + 1, t.coords.row);
+            const bottomTile = this.getTile(t.coords.col, t.coords.row + 1);
+            const diagonalTile = this.getTile(
+                t.coords.col + 1,
+                t.coords.row + 1
+            );
+            if (
+                leftTile.color === t.color &&
+                bottomTile.color === t.color &&
+                diagonalTile.color === t.color
+            ) {
+                // remove colors
+                t.color =
+                    leftTile.color =
+                    bottomTile.color =
+                    diagonalTile.color =
+                        TileColor.NONE;
+                // add Points
+            }
+        });
+    }
+
+    update(time: number) {
         if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
             let clickFinished = false;
             this.eachTile((t) => {
@@ -168,11 +225,13 @@ export class PlayMap implements Updateable {
                         LogI("Clicked coords", t.coords, "To swap with", t.id);
                         this.swapTiles(t.coords, this.selectedTile);
                     } else {
-                        this.selectTile(t);
+                        if (t.color !== TileColor.NONE) this.selectTile(t);
                     }
                     clickFinished = true;
                 }
             });
         }
+        this.removeClusteredTiles();
+        this.clogDelta += time;
     }
 }

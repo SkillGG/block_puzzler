@@ -91,7 +91,7 @@ export const Log = (type: LogType = LogType.INFO, ...msg: any[]) => {
                     return `${q},${z[0]}:${z[1]}`;
                 }, "")}}`;
             }
-            return `${p} ${n.toString()}`;
+            return `${p} ${n?.toString()}`;
         }, ""),
         type,
     });
