@@ -148,10 +148,11 @@ export class PlayMap implements Updateable {
         }
     }
 
-    eachTile(fn: (t: Tile) => void) {
+    eachTile(fn: (t: Tile) => void, predicate?: (t: Tile) => boolean) {
         for (let i = 0; i < this.tiles.length; i++) {
             for (let j = 0; j < this.tiles[i].length; j++) {
-                fn(this.tiles[i][j]);
+                if (!predicate || predicate(this.tiles[i][j]))
+                    fn(this.tiles[i][j]);
             }
         }
     }
@@ -186,32 +187,41 @@ export class PlayMap implements Updateable {
         t.markSelected();
     }
 
+    deselectTile(t: Tile) {
+        this.selectedTile = null;
+        LogI("Deselected tile", t.id, t.coords);
+        t.unmarkSelected();
+    }
+
     clogDelta: number = 0;
 
     removeClusteredTiles() {
-        this.eachTile((t) => {
-            if (t.coords.row >= this.rowNum - 1) return;
-            if (t.coords.col >= this.colNum - 1) return;
-            const leftTile = this.getTile(t.coords.col + 1, t.coords.row);
-            const bottomTile = this.getTile(t.coords.col, t.coords.row + 1);
-            const diagonalTile = this.getTile(
-                t.coords.col + 1,
-                t.coords.row + 1
-            );
-            if (
-                leftTile.color === t.color &&
-                bottomTile.color === t.color &&
-                diagonalTile.color === t.color
-            ) {
-                // remove colors
-                t.color =
-                    leftTile.color =
-                    bottomTile.color =
-                    diagonalTile.color =
-                        TileColor.NONE;
-                // add Points
-            }
-        });
+        this.eachTile(
+            (t) => {
+                if (t.coords.row >= this.rowNum - 1) return;
+                if (t.coords.col >= this.colNum - 1) return;
+                const leftTile = this.getTile(t.coords.col + 1, t.coords.row);
+                const bottomTile = this.getTile(t.coords.col, t.coords.row + 1);
+                const diagonalTile = this.getTile(
+                    t.coords.col + 1,
+                    t.coords.row + 1
+                );
+                if (
+                    leftTile.color === t.color &&
+                    bottomTile.color === t.color &&
+                    diagonalTile.color === t.color
+                ) {
+                    // remove colors
+                    t.color =
+                        leftTile.color =
+                        bottomTile.color =
+                        diagonalTile.color =
+                            TileColor.NONE;
+                    // add Points
+                }
+            },
+            (t) => t.color !== TileColor.NONE
+        );
     }
 
     update(time: number) {
@@ -222,16 +232,28 @@ export class PlayMap implements Updateable {
                 if (Game.input.isMouseIn(t.bounds)) {
                     // clicked a tile
                     if (this.selectedTile) {
-                        LogI("Clicked coords", t.coords, "To swap with", t.id);
-                        this.swapTiles(t.coords, this.selectedTile);
+                        if (
+                            t.coords.row === this.selectedTile.row &&
+                            t.coords.col === this.selectedTile.col
+                        ) {
+                            this.deselectTile(t);
+                        } else {
+                            LogI(
+                                "Clicked coords",
+                                t.coords,
+                                "To swap with",
+                                t.id
+                            );
+                            this.swapTiles(t.coords, this.selectedTile);
+                        }
                     } else {
                         if (t.color !== TileColor.NONE) this.selectTile(t);
                     }
                     clickFinished = true;
                 }
             });
+            this.removeClusteredTiles();
         }
-        this.removeClusteredTiles();
         this.clogDelta += time;
     }
 }
