@@ -1,5 +1,5 @@
 import { Game } from "@/game";
-import { Vector2 } from "@utils/utils";
+import { Vector2, Vector_2 } from "@utils/utils";
 import { RectangleBounds } from "./Primitives/Rectangle/RectangleBounds";
 import { Updateable } from "./interfaces";
 
@@ -12,7 +12,21 @@ export class InputManager implements Updateable {
     mouseButtonsPressed: Set<number>;
     mouseButtonsClicked: Set<number>;
     allowedKeys: Set<string>;
-    mousePosition: Vector2;
+    _mousePosition: Vector2;
+
+    get mousePosition(): Vector2 {
+        const mousePosInCanvas = Game.getNormalVector(this._mousePosition);
+        const scaledPosInCanvas: Vector2 = [
+            mousePosInCanvas[0] * this.mouseInputScale.x,
+            mousePosInCanvas[1] * this.mouseInputScale.y,
+        ];
+        return Game.getRelativeVector(scaledPosInCanvas);
+    }
+
+    mouseInputScale: Vector_2;
+
+    private firstUpdate = false;
+
     constructor() {
         window.onkeydown = this.handleKeyDown.bind(this);
         window.onkeyup = this.handleKeyUp.bind(this);
@@ -20,11 +34,13 @@ export class InputManager implements Updateable {
         window.onmouseup = this.handleMouseUp.bind(this);
         window.oncontextmenu = (e) => e.preventDefault();
         window.onmousemove = this.handleMouseMove.bind(this);
+        window.onresize = this.handleResize.bind(this);
         this.keysPressed = new Set();
         this.allowedKeys = new Set(["F12", "F5"]);
         this.mouseButtonsPressed = new Set();
         this.mouseButtonsClicked = new Set();
-        this.mousePosition = [0, 0];
+        this._mousePosition = [0, 0];
+        this.mouseInputScale = { x: 1, y: 1 };
     }
     isMouseIn(rect: RectangleBounds) {
         const checkRect = new RectangleBounds(
@@ -68,7 +84,7 @@ export class InputManager implements Updateable {
         if (!this.allowedKeys.has(e.code)) e.preventDefault();
     }
     handleMouseMove(e: MouseEvent) {
-        this.mousePosition = [e.clientX, e.clientY];
+        this._mousePosition = [e.clientX, e.clientY];
     }
     handleKeyUp(e: KeyboardEvent) {
         this.keysPressed.delete(e.code);
@@ -81,10 +97,39 @@ export class InputManager implements Updateable {
         e.preventDefault();
     }
     handleMouseDown(e: MouseEvent) {
+        console.log("Mouse pos", e.clientX, e.clientY);
         this.mouseButtonsPressed.add(e.button);
         e.preventDefault();
     }
+    getMouseInputScaleFactors(): Vector_2 {
+        if (!Game.instance) return { x: 1, y: 1 };
+
+        const gameStyle = Game.instance.getComputedStyle();
+
+        const gameWidth = parseFloat(gameStyle.width);
+        const gameHeight = parseFloat(gameStyle.height);
+
+        const Xscale = Game.WIDTH / gameWidth;
+        const Yscale = Game.HEIGHT / gameHeight;
+
+        return { x: Xscale, y: Yscale };
+    }
+    handleResize() {
+        if (!Game.instance) return;
+        // save the window ratio
+        if (matchMedia("(max-height: 805px)").matches) {
+            const newWidth = (Game.WIDTH / Game.HEIGHT) * window.innerHeight;
+            Game.instance.style.maxWidth = Math.min(newWidth, 600) + "px";
+        } else {
+            Game.instance.style.maxWidth = "";
+        }
+        this.mouseInputScale = this.getMouseInputScaleFactors();
+    }
     update() {
         this.mouseButtonsClicked = new Set();
+        if (!this.firstUpdate) {
+            this.handleResize();
+            this.firstUpdate = true;
+        }
     }
 }

@@ -39,6 +39,11 @@ export class DevConsole {
     }
     redrawLogs() {
         this.clearDOM();
+        if (
+            getComputedStyle(this.consoleWindow.parentElement!).display ===
+            "none"
+        )
+            return;
         this.logs.forEach((log) => {
             const logEl = $``({
                 props: { class: "log", "data-type": log.type },
@@ -68,4 +73,31 @@ export class DevConsole {
     static newLog(l: Log) {
         DevConsole.instance?.addLog(l);
     }
+    static refresh() {
+        DevConsole.instance?.redrawLogs();
+    }
 }
+
+export const Log = (type: LogType = LogType.INFO, ...msg: any[]) => {
+    DevConsole.newLog({
+        message: msg.reduce((p, n) => {
+            if (typeof n === "object" && !Array.isArray(n)) {
+                return `${p} {${Object.entries(n).reduce((q, z) => {
+                    return `${q},${z[0]}:${z[1]}`;
+                }, "")}}`;
+            }
+            return `${p} ${n?.toString()}`;
+        }, ""),
+        type,
+    });
+};
+
+export const LogI = (...msg: any[]) => {
+    Log(LogType.INFO, ...msg);
+};
+export const LogW = (...msg: any[]) => {
+    Log(LogType.WARN, ...msg);
+};
+export const LogE = (...msg: any[]) => {
+    Log(LogType.ERROR, ...msg);
+};

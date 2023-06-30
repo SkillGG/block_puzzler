@@ -26,11 +26,31 @@ type ChildArray = HTMLElement[];
 
 export const $$ = (
     name: string = "div",
-    props?: PropList,
-    children?: ChildArray,
+    props: PropList = {},
+    children: ChildArray = [],
     innerHTML: string = ""
 ): HTMLElement => {
     if (!name) name = "div";
+    const nameRX = /^(.*?)((?:\.|#).*)*$/.exec(name);
+    if (nameRX && nameRX[1]) {
+        name = nameRX[1];
+        const specifier = nameRX[2];
+        const classes: string[] = [];
+        const classRX = /\.(.*?)(?=\.|#|$)/g;
+        let foundClass: RegExpExecArray | null;
+        while ((foundClass = classRX.exec(specifier))) {
+            classes.push(foundClass[1]);
+        }
+        let id = "";
+        const idRX = /\#(.*?)(?=\.|#|$)/g;
+        let foundID: RegExpExecArray | null;
+        while ((foundID = idRX.exec(specifier))) {
+            id = foundID[1];
+        }
+        props.id = props.id || id;
+        props["class"] =
+            (props["class"] ? props["class"] + " " : "") + classes.join(" ");
+    }
     const element = document.createElement(name);
     Object.entries(props || []).forEach((prop) => {
         element.setAttribute(prop[0], prop[1]);

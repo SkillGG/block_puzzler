@@ -1,15 +1,20 @@
-import { DevConsole, LogType } from "@/console";
-
+import { DevConsole } from "@/console";
 import { InputManager } from "@component/KeyboardManager";
 import { ObjectManager } from "@component/ObjectManager";
 import { Renderable, Updateable } from "@component/interfaces";
 import { GameOptions } from "@/options";
 import { Vector2 } from "@utils/utils";
+import { GameState } from "@/main";
 
 export const normalizeVector2RelativeToElement = (
     elem: HTMLElement,
     v: Vector2
 ): Vector2 => [v[0] + elem.offsetLeft, v[1] + elem.offsetTop];
+
+export const denormalizeVector2RelativeToElement = (
+    elem: HTMLElement,
+    v: Vector2
+): Vector2 => [v[0] - elem.offsetLeft, v[1] - elem.offsetTop];
 
 export class Game<T extends string>
     extends HTMLCanvasElement
@@ -21,7 +26,7 @@ export class Game<T extends string>
     readonly gameHeight: number = 800;
     readonly gameWidth: number = 600;
     readonly devConsole: DevConsole;
-    readonly options: GameOptions;
+    readonly options: GameOptions<T>;
 
     static readonly WIDTH = 600;
     static readonly HEIGHT = 800;
@@ -35,17 +40,26 @@ export class Game<T extends string>
         return Game.instance.getRelativeVector(v);
     }
 
+    static getNormalVector(v: Vector2): Vector2 {
+        if (!Game.instance) throw "No Game instance!";
+        return Game.instance.getNormalVector(v);
+    }
+
     static getWidth() {
         return this.instance?.width || Game.WIDTH;
     }
-    static getHeigth() {
+    static getHeight() {
         return this.instance?.height || Game.HEIGHT;
     }
     static getSize(): Vector2 {
-        return [Game.getWidth(), Game.getHeigth()];
+        return [Game.getWidth(), Game.getHeight()];
     }
 
-    constructor(devConsole: DevConsole, options: GameOptions, defaultState: T) {
+    constructor(
+        devConsole: DevConsole,
+        options: GameOptions<T>,
+        defaultState: T
+    ) {
         super();
         this.options = options;
         this.devConsole = devConsole;
@@ -61,8 +75,14 @@ export class Game<T extends string>
         this.height = this.gameHeight;
         Game.instance = this;
     }
+    getComputedStyle() {
+        return window.getComputedStyle(this);
+    }
     getRelativeVector(v: Vector2): Vector2 {
         return normalizeVector2RelativeToElement(this, v);
+    }
+    getNormalVector(v: Vector2): Vector2 {
+        return denormalizeVector2RelativeToElement(this, v);
     }
     run() {
         this.running = true;
@@ -73,36 +93,40 @@ export class Game<T extends string>
     addDrawCall(drawFn: (ctx: CanvasRenderingContext2D) => void) {
         drawFn(this.canvasContext);
     }
+    checkUI() {
+        if (this.options.stateManager) {
+            if (this.options.isHidden) {
+                if (
+                    !this.manager.getStateManager(
+                        this.options.stateManager.defaultID
+                    )
+                ) {
+                    this.manager.addStateManager(this.options.stateManager);
+                    this.options.stateManager.registerObjects();
+                }
+            } else {
+                this.manager.removeStateManager(
+                    this.options.stateManager.defaultID
+                );
+            }
+        }
+    }
     update(timeStep: number) {
         this.manager.update(timeStep);
         Game.input.update();
+        this.options.refreshUI();
     }
     render() {
+        this.checkUI();
         this.canvasContext.clearRect(0, 0, this.width, this.height);
         this.manager.render(this.canvasContext);
     }
 }
 customElements.define("game-", Game, { extends: "canvas" });
-export const Log = (type: LogType = LogType.INFO, ...msg: any[]) => {
-    DevConsole.newLog({
-        message: msg.reduce((p, n) => {
-            if (typeof n === "object" && !Array.isArray(n)) {
-                return `${p} {${Object.entries(n).reduce((q, z) => {
-                    return `${q},${z[0]}:${z[1]}`;
-                }, "")}}`;
-            }
-            return `${p} ${n?.toString()}`;
-        }, ""),
-        type,
-    });
-};
-
-export const LogI = (...msg: any[]) => {
-    Log(LogType.INFO, ...msg);
-};
-export const LogW = (...msg: any[]) => {
-    Log(LogType.WARN, ...msg);
-};
-export const LogE = (...msg: any[]) => {
-    Log(LogType.ERROR, ...msg);
-};
+declare global {
+    interface Window {
+        game: Game<GameState>;
+        Game: typeof Game;
+    }
+}
+window.Game = Game;

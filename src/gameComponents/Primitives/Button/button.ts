@@ -41,7 +41,7 @@ export class Button extends BoundedGameObject {
     }
     isIn: boolean = false;
     update() {
-        const { mousePosition: mousePos } = Game.input;
+        const { _mousePosition: mousePos } = Game.input;
         const MouseEvent = { mousePos, target: this };
         if (Game.input.isMouseIn(this.bounds)) {
             if (this.isIn === false) this.onCalls.onenter?.(MouseEvent);

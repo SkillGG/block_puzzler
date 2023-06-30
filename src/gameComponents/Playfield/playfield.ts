@@ -4,20 +4,23 @@ import { StateManager } from "@component/StateManager";
 import { PlayMap } from "@component/Playfield/Playmap/playmap";
 import { Tile, TileColor } from "./Tile/tile";
 import { randomInt } from "@utils/utils";
+import { GameOptions } from "@/options";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
+    get defaultID() {
+        return Playfield.DefaultID;
+    }
 
     map: PlayMap;
 
     constructor(manager: ObjectManager<GameState>) {
         super(Playfield.DefaultID, manager, GameState.GAME);
-        this.map = new PlayMap({ x: 0, y: 50 });
+        this.map = new PlayMap({ x: 0, y: 50 }, this);
     }
 
     private init() {
         this.map.createAMap(6, 6);
-        this.map.eachTile(this.registerObject.bind(this));
     }
 
     static randomTileColor = () => {
@@ -49,10 +52,20 @@ export class Playfield extends StateManager<GameState> {
         return TileColor.NONE;
     };
 
-    startGame(timeout: number = 100) {
-        setTimeout(() => {
-            this.init();
-        }, timeout);
+    startGame() {
+        this.init();
+    }
+    removeObjects(): void {
+        this.map.eachTile((t) => this.removeObject(t));
+        this.map.destroy();
+    }
+    registerObjects(): void {
+        this.map.eachTile((t) => this.registerObject(t));
+    }
+    addPoints(pts: number): void {
+        const osm = GameOptions.instance;
+        if (!osm) return;
+        osm.addPoints(pts);
     }
     update(time: number): void {
         this.map.update(time);

@@ -12,12 +12,6 @@ export enum GameState {
     GAME = "GAME",
 }
 
-declare global {
-    interface Window {
-        game: Game<GameState>;
-    }
-}
-
 const [gameBox, consoleBox, optionsBox] = getHTMLBoxes([
     "#gameBox",
     "#consoleContent",
@@ -31,7 +25,9 @@ const devConsole = (window.gameconsole = new DevConsole(
     consoleBox as HTMLDivElement
 ));
 
-const options = (window.options = new GameOptions());
+const options = (window.options = new GameOptions<GameState>(
+    optionsBox as HTMLDivElement
+));
 
 const game = (window.game = new Game<GameState>(
     devConsole,
@@ -40,6 +36,8 @@ const game = (window.game = new Game<GameState>(
 ));
 gameBox.append(game);
 
+options.createManager(game.manager, GameState.GAME);
+
 /**
  * Register all GameStates
  */
@@ -47,12 +45,13 @@ game.manager.registerGameState(...Object.values(GameState));
 /**
  * Add objects
  */
-const fpsCounter = new FpsCounter([0, 0]);
+const fpsCounter = new FpsCounter([10, 10]);
 game.manager.addObject(fpsCounter, GameState.GAME);
 game.manager.addObject(fpsCounter, GameState.MENU);
 
-game.manager.addObjectManager(new GameMenu(game.manager));
-game.manager.addObjectManager(new Playfield(game.manager));
+game.manager.addStateManager(new GameMenu(game.manager));
+game.manager.getStateManager(GameMenu.DefaultID)?.registerObjects();
+game.manager.addStateManager(new Playfield(game.manager));
 
 /**
  * Game loop

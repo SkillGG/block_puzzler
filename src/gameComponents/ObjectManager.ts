@@ -21,11 +21,33 @@ export class ObjectManager<AvailableStates extends string>
         for (const s of states)
             if (!this.stateObjects.has(s)) this.stateObjects.set(s, []);
     }
-    addObjectManager<T extends string>(om: StateManager<T>) {
+    addStateManager<T extends string>(om: StateManager<T>) {
         this.objectManagers.push(om);
     }
-    getObjectManager<T extends StateManager<any>>(omid: string) {
+    getStateManager<T extends StateManager<any>>(omid: string): T | null {
         return (this.objectManagers.find((f) => f.id === omid) as T) || null;
+    }
+
+    removeObject(objid: string, state: AvailableStates) {
+        this.stateObjects = new Map(
+            [...this.stateObjects].map((stateData) => {
+                if (stateData[0] === state) {
+                    return [
+                        stateData[0],
+                        stateData[1].filter((o) => {
+                            return o.id !== objid;
+                        }),
+                    ];
+                } else return stateData;
+            })
+        );
+    }
+
+    removeStateManager<T extends string>(omid: T) {
+        const omToRemove = this.objectManagers.find((f) => f.id === omid);
+        if (!omToRemove) return;
+        omToRemove.removeObjects();
+        this.objectManagers = this.objectManagers.filter((f) => f.id !== omid);
     }
 
     private divideByZ = (objects: GameObject[]): GameObject[][] => {

@@ -1,9 +1,10 @@
-import { Vector2, Vector_2, randomInt } from "@utils/utils";
+import { Vector_2, randomInt } from "@utils/utils";
 import { Tile, TileColor, TileCoords } from "../Tile/tile";
-import { Game, LogE, LogI } from "@/game";
+import { Game } from "@/game";
 import { Updateable } from "@component/interfaces";
 import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
 import { Playfield } from "../playfield";
+import { LogI, LogE } from "@/console";
 
 export class PlayMap implements Updateable {
     private pos: Vector_2;
@@ -46,8 +47,11 @@ export class PlayMap implements Updateable {
 
     private numberOfMoves = 0;
 
-    constructor(pos: Vector_2) {
+    private playfield: Playfield;
+
+    constructor(pos: Vector_2, playfield: Playfield) {
         this.pos = pos;
+        this.playfield = playfield;
     }
 
     createAMap(cols: number, rows: number) {
@@ -78,6 +82,11 @@ export class PlayMap implements Updateable {
             t.moveBy([newLeft, 0]);
         });
         this.playable = true;
+    }
+
+    destroy() {
+        this._tiles = [];
+        this.playable = false;
     }
 
     getRandomTile() {
@@ -218,6 +227,7 @@ export class PlayMap implements Updateable {
                         diagonalTile.color =
                             TileColor.NONE;
                     // add Points
+                    this.playfield.addPoints(4);
                 }
             },
             (t) => t.color !== TileColor.NONE
@@ -237,7 +247,7 @@ export class PlayMap implements Updateable {
                             t.coords.col === this.selectedTile.col
                         ) {
                             this.deselectTile(t);
-                        } else {
+                        } else if (t.color === TileColor.NONE) {
                             LogI(
                                 "Clicked coords",
                                 t.coords,
