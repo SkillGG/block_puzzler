@@ -85,3 +85,17 @@ export const getHTMLBoxes = (s: string[]) => {
 export const randomInt = (min: number, max: number) => {
     return Math.floor(Math.random() * (max - min + 1) + min);
 };
+
+export const getRandomWeightedNumber = <T>(weights: [number, T][]): T => {
+    const weightSum = weights.reduce((p, n) => p + n[0], 0);
+
+    const rand = Math.random() * weightSum;
+
+    let sum = 0;
+
+    for (const [weight, value] of weights) {
+        sum += weight;
+        if (rand <= sum) return value;
+    }
+    return weights[weights.length - 1][1];
+};

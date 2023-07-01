@@ -6,7 +6,6 @@ import { Rectangle } from "@component/Primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
 import {
     Label,
-    LabelTextStyle,
     LabelWithBorderStyle,
 } from "@component/Primitives/Label/Label";
 import { GameObject } from "@component/GameObject";

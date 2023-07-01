@@ -4,14 +4,17 @@ import { Vector2, Vector_2 } from "@utils/utils";
 
 export enum TileColor {
     NONE = "transparent",
-    BLUE = "blue",
-    RED = "red",
-    YELLOW = "yellow",
+    BLUE = "#33ce",
+    RED = "#f00d",
+    YELLOW = "#ff0c",
+    GREEN = "#0f0a",
 }
 
 export type TileCoords = { col: number; row: number };
 
 export class Tile extends BoundedGameObject {
+    static HIGHLIGHT_COLOR = "white";
+
     item: string | null = null;
 
     anchor: Vector_2;
@@ -28,7 +31,7 @@ export class Tile extends BoundedGameObject {
         id: string,
         gridPosition: Vector_2,
         coords: Vector2,
-        [width, height]: Vector2 = [25, 25]
+        [width, height]: Vector2 = [40, 40]
     ) {
         const [row, col] = coords;
         super(id, new RectangleBounds(0, 0, width, height));
@@ -81,9 +84,9 @@ export class Tile extends BoundedGameObject {
 
     render(ctx: CanvasRenderingContext2D): void {
         ctx.fillStyle = this.color;
-        ctx.strokeStyle = this.selected ? "green" : "black";
-        ctx.lineWidth = 1;
-        if (this.selected) ctx.lineWidth = 3;
+        ctx.strokeStyle = this.selected ? Tile.HIGHLIGHT_COLOR : "black";
+        ctx.lineWidth = 2;
+        if (this.selected) ctx.lineWidth = 5;
         ctx.rect(
             this.bounds.x,
             this.bounds.y,
@@ -92,18 +95,6 @@ export class Tile extends BoundedGameObject {
         );
         ctx.fill();
         ctx.stroke();
-        ctx.font = "5px";
-        ctx.fillStyle = "black";
-        const tNW = ctx.measureText(this.tileNumberStr);
-        ctx.fillText(
-            `${this.tileNumberStr}`,
-            this.bounds.x,
-            this.bounds.y +
-                tNW.actualBoundingBoxAscent +
-                tNW.actualBoundingBoxDescent +
-                2,
-            this.bounds.width
-        );
     }
     setColor(c: TileColor) {
         if (!c) return;

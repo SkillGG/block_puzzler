@@ -13,7 +13,7 @@ export class GameMenu extends StateManager<GameState> {
     startButton: Button;
     static DefaultID = "menu";
 
-    mapSize = 3;
+    mapSize = 10;
 
     get defaultID() {
         return GameMenu.DefaultID;

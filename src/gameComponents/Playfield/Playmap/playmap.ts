@@ -84,17 +84,14 @@ export class PlayMap implements Updateable {
             this._tiles.push(tileRow);
         }
 
-        const colorTiles = randomInt(3, 5);
-        for (let i = 0; i < colorTiles; i++) {
-            this.getRandomTile().setColor(Playfield.randomTileColor());
-        }
-
         // center the map
         const rowWidth = this.tiles[0][0].bounds.width * cols;
         const newLeft = Game.getWidth() / 2 - rowWidth / 2;
         this.eachTile((t) => {
             t.moveBy([newLeft, 0]);
         });
+        this.getRandomTile().setColor(Playfield.randomTileColor());
+        this.randomizeTileValues(Playfield.randomTileColor_EASY);
         this.playable = true;
     }
 
@@ -228,30 +225,49 @@ export class PlayMap implements Updateable {
 
     clogDelta: number = 0;
 
+    isThereClusteredTile() {
+        const tiles = this.tiles;
+        for (let i = 0; i < tiles.length; i++) {
+            const row = tiles[i];
+            for (let j = 0; j < row.length; j++) {
+                const tile = row[j];
+                if (tile.color === TileColor.NONE) continue;
+                if (tile.coords.row >= this.rowNum - 1) continue;
+                if (tile.coords.col >= this.colNum - 1) continue;
+                const leftTile = row[j + 1];
+                if (leftTile.color !== tile.color) continue;
+                const bottomTile = tiles[i + 1][j];
+                if (bottomTile.color !== tile.color) continue;
+                const diagonalTile = tiles[i + 1][j + 1];
+                if (diagonalTile.color !== tile.color) continue;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     getClusteredTiles() {
         const clusters: Tile[][] = [];
-        this.eachTile(
-            (t) => {
-                if (t.coords.row >= this.rowNum - 1) return;
-                if (t.coords.col >= this.colNum - 1) return;
-                if (clusters.find((f) => f.find((tx) => tx === t))) return;
-                const leftTile = this.getTile(t.coords.col + 1, t.coords.row);
-                const bottomTile = this.getTile(t.coords.col, t.coords.row + 1);
-                const diagonalTile = this.getTile(
-                    t.coords.col + 1,
-                    t.coords.row + 1
-                );
-                if (
-                    leftTile.color === t.color &&
-                    bottomTile.color === t.color &&
-                    diagonalTile.color === t.color
-                ) {
-                    // remove colors
-                    clusters.push([t, leftTile, bottomTile, diagonalTile]);
-                }
-            },
-            (t) => t.color !== TileColor.NONE
-        );
+        const tiles = this.tiles;
+        for (let i = 0; i < tiles.length; i++) {
+            const row = tiles[i];
+            for (let j = 0; j < row.length; j++) {
+                const tile = row[j];
+                // console.log(tile.color === TileColor.NONE);
+                if (tile.color === TileColor.NONE) continue;
+                if (tile.coords.row >= this.rowNum - 1) continue;
+                if (tile.coords.col >= this.colNum - 1) continue;
+                const leftTile = row[j + 1];
+                if (leftTile.color !== tile.color) continue;
+                const bottomTile = tiles[i + 1][j];
+                if (bottomTile.color !== tile.color) continue;
+                const diagonalTile = tiles[i + 1][j + 1];
+                if (diagonalTile.color !== tile.color) continue;
+                // remove colors
+                clusters.push([tile, leftTile, bottomTile, diagonalTile]);
+            }
+        }
         return clusters;
     }
 
@@ -270,6 +286,7 @@ export class PlayMap implements Updateable {
 
     checkEndGame() {
         const emTiles = this.emptyTiles;
+        const start = performance.now();
         if (emTiles.length === 0) return true;
         const canDestroyIfTilesChange = (tilesToCheck: Tile[], depth = 0) => {
             const firstTile = tilesToCheck[0];
@@ -279,7 +296,7 @@ export class PlayMap implements Updateable {
                 (tc) => tc !== TileColor.NONE
             )) {
                 firstTile.color = color;
-                if (this.getClusteredTiles().length > 0) {
+                if (this.isThereClusteredTile()) {
                     firstTile.color = TileColor.NONE;
                     return true;
                 } else if (restTiles.length > 0) {
@@ -291,10 +308,10 @@ export class PlayMap implements Updateable {
             }
 
             firstTile.color = TileColor.NONE;
-
             return false;
         };
         const canDestroyTilesIfSwapped = () => {
+            console.log("Checking swaps");
             for (const coloredTile of this.tilesArr.filter(
                 (t) => t.color !== TileColor.NONE
             )) {
@@ -315,9 +332,12 @@ export class PlayMap implements Updateable {
             }
             return false;
         };
-        return !(
+        const x = !(
             canDestroyIfTilesChange(emTiles) || canDestroyTilesIfSwapped()
         );
+        const end = performance.now();
+        console.log("EndGameCheck:", end - start, "ms");
+        return x;
     }
 
     removeClusteredTiles() {
@@ -346,6 +366,19 @@ export class PlayMap implements Updateable {
                                 this.deselectTile(t);
                             } else if (t.color === TileColor.NONE) {
                                 this.swapTiles(t.coords, this.selectedTile);
+                                this.removeClusteredTiles();
+                                const endGame = this.checkEndGame();
+                                if (endGame) {
+                                    this.gameOver = true;
+                                    this.playfield.gameOver();
+                                } else if (
+                                    this.emptyTiles.length ===
+                                    this.tilesArr.length
+                                ) {
+                                    this.randomizeTileValues(
+                                        Playfield.randomTileColor_EASY
+                                    );
+                                }
                             }
                         } else {
                             if (t.color !== TileColor.NONE) this.selectTile(t);
@@ -353,14 +386,6 @@ export class PlayMap implements Updateable {
                         clickFinished = true;
                     }
                 });
-                this.removeClusteredTiles();
-                const endGame = this.checkEndGame();
-                if (endGame) {
-                    this.gameOver = true;
-                    this.playfield.gameOver();
-                } else if (this.emptyTiles.length === this.tilesArr.length) {
-                    this.randomizeTileValues(Playfield.randomTileColor_EASY);
-                }
             }
         }
         this.clogDelta += time;

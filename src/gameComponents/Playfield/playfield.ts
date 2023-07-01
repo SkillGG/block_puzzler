@@ -3,7 +3,7 @@ import { ObjectManager } from "@component/ObjectManager";
 import { StateManager } from "@component/StateManager";
 import { PlayMap } from "@component/Playfield/Playmap/playmap";
 import { Tile, TileColor } from "./Tile/tile";
-import { randomInt } from "@utils/utils";
+import { getRandomWeightedNumber, randomInt } from "@utils/utils";
 import { GameOptions } from "@/options";
 import { GameOverScreen } from "./gameOverScreen";
 
@@ -28,10 +28,10 @@ export class Playfield extends StateManager<GameState> {
     }
 
     static randomTileColor = () => {
-        const rand = randomInt(0, 2);
-        if (rand === 0) return TileColor.BLUE;
-        if (rand === 1) return TileColor.RED;
-        else return TileColor.YELLOW;
+        const rand = randomInt(0, Object.values(TileColor).length - 2);
+        return Object.values(TileColor).filter((t) => t !== TileColor.NONE)[
+            rand
+        ];
     };
 
     static randomTileColor_EASY = (
@@ -40,20 +40,19 @@ export class Playfield extends StateManager<GameState> {
         _a: Tile[][],
         moveNum: number
     ) => {
+        if (moveNum === 0) {
+            // start randomizing
+        }
+
         if (t.color !== TileColor.NONE) return t.color;
         if (n >= 5) return TileColor.NONE;
 
-        const probabilityOfchangingColor = Math.max(1, 0.3 * moveNum);
-
-        const rand = randomInt(0, 100);
-
-        if (rand > 1 && rand < 1 + probabilityOfchangingColor)
-            return TileColor.BLUE;
-        if (rand > 31 && rand < 31 + probabilityOfchangingColor)
-            return TileColor.RED;
-        if (rand > 61 && rand < 61 + probabilityOfchangingColor)
-            return TileColor.YELLOW;
-        return TileColor.NONE;
+        return getRandomWeightedNumber(
+            Object.values(TileColor).map((color) => {
+                if (color === TileColor.NONE) return [80, color];
+                return [0.05 * moveNum, color];
+            })
+        );
     };
 
     startGame(ms: number) {

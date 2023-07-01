@@ -122,8 +122,11 @@ export class GameOptions<T extends string> {
 
     refreshUI() {
         if (this.isHidden) {
+            this.stateManager?.registerObjects();
             this.stateManager?.refreshUI();
             return;
+        } else {
+            this.stateManager?.removeObjects();
         }
         if (
             this.stateManager?.manager.currentState === GameState.GAME &&

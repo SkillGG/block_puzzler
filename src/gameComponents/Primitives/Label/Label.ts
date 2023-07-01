@@ -73,7 +73,9 @@ export class Label extends BoundedGameObject {
             this.text,
             textX,
             textY,
-            this.bounds.width - this.border.style.strokeWidth * 2
+            this.bounds.width
+                ? this.bounds.width - this.border.style.strokeWidth * 2
+                : undefined
         );
     }
     update(): void {}
