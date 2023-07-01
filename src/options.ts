@@ -20,6 +20,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
     }
 
     pointsLabel: Label;
+    movesLabel: Label;
 
     parent: GameOptions<T>;
 
@@ -27,27 +28,36 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         super(OptionsStateManager.DefaultID, manager, state);
         this.pointsLabel = new Label(
             "pointsLabel",
-            new RectangleBounds(0, 0, Game.getWidth() - 25, 50),
+            new RectangleBounds(0, 0, Game.getWidth() - 25, 0),
             "",
             {
-                label: { align: "right" },
-                border: { strokeColor: "transparent" },
+                label: { align: "right", font: "normal 1em auto" },
+            }
+        );
+        this.movesLabel = new Label(
+            "movesLabel",
+            new RectangleBounds(0, 20, Game.getWidth() - 25, 0),
+            "",
+            {
+                label: { align: "right", font: "normal 1em auto" },
             }
         );
         this.parent = parent;
     }
     refreshUI() {
         this.pointsLabel.text = `Points: ${this.parent.points}`;
+        this.movesLabel.text = `Moves: ${this.parent.moves}`;
     }
     removeObjects(): void {
         this.removeObject(this.pointsLabel);
+        this.removeObject(this.movesLabel);
     }
     registerObjects(): void {
-        console.log("registering options");
         this.registerObject(this.pointsLabel);
+        this.registerObject(this.movesLabel);
     }
     update(): void {
-        this.pointsLabel.text = `Points ${this.parent.points}`;
+        this.refreshUI();
     }
 }
 
@@ -74,13 +84,19 @@ export class GameOptions<T extends string> {
 
     private _gameOver = false;
 
+    get isGameOver() {
+        return this._gameOver;
+    }
+
     gameOver() {
         this._gameOver = true;
+        this.stateManager?.removeObjects();
     }
 
     gameRestarted() {
         this._gameOver = false;
         this.points = 0;
+        this.stateManager?.registerObjects();
         // save highscore
     }
 

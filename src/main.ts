@@ -54,10 +54,6 @@ game.manager.addStateManager(new GameMenu(game.manager));
 game.manager.getStateManager(GameMenu.DefaultID)?.registerObjects();
 game.manager.addStateManager(new Playfield(game.manager));
 
-game.manager
-    .getObject("start_button", GameState.MENU)!
-    .safeCTXRender(game.getContext("2d")!);
-
 /**
  * Game loop
  */

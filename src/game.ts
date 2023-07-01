@@ -54,13 +54,12 @@ export class Game<T extends string>
     canvasContext: CanvasRenderingContext2D;
     running: boolean = false;
     manager: ObjectManager<T>;
-    readonly gameHeight: number = 800;
-    readonly gameWidth: number = 600;
+    static readonly WIDTH = 600;
+    static readonly HEIGHT = 600;
+    readonly gameHeight: number = Game.HEIGHT;
+    readonly gameWidth: number = Game.WIDTH;
     readonly devConsole: DevConsole;
     readonly options: GameOptions<T>;
-
-    static readonly WIDTH = 600;
-    static readonly HEIGHT = 800;
 
     static input: InputManager = new InputManager();
 
@@ -87,7 +86,6 @@ export class Game<T extends string>
     }
 
     static defaultCTX: Record<keyof CanvasRenderingContext2D, any>;
-
 
     constructor(
         devConsole: DevConsole,
@@ -137,7 +135,6 @@ export class Game<T extends string>
                     )
                 ) {
                     this.manager.addStateManager(this.options.stateManager);
-                    this.options.stateManager.registerObjects();
                 }
             } else {
                 this.manager.removeStateManager(

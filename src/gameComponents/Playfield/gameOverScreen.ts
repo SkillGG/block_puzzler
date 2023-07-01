@@ -81,7 +81,7 @@ export class GameOverScreen extends StateManager<GameState> {
             50,
             30,
             Game.WIDTH - 100,
-            250
+            450
         );
         const getCenteredLabelBoundsAtY = (y: number) =>
             new RectangleBounds(
@@ -99,12 +99,7 @@ export class GameOverScreen extends StateManager<GameState> {
         this.objects.push(
             new Rectangle(
                 "gameOverWindow",
-                new RectangleBounds(
-                    50,
-                    30,
-                    Game.WIDTH - 100,
-                    Game.HEIGHT / 2 - 50
-                ),
+                gameOverBoxBounds,
                 {
                     fillColor: "#444c",
                 },
