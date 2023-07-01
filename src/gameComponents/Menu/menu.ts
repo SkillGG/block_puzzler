@@ -12,6 +12,9 @@ export class GameMenu extends StateManager<GameState> {
     menuLabel: Label;
     startButton: Button;
     static DefaultID = "menu";
+
+    mapSize = 3;
+
     get defaultID() {
         return GameMenu.DefaultID;
     }
@@ -20,7 +23,7 @@ export class GameMenu extends StateManager<GameState> {
 
         const buttonStyle: LabelWithBorderStyle = {
             label: {
-                font: "15px Arial bold",
+                font: "normal 1.5em auto",
             },
         };
         const labelStyle: LabelWithBorderStyle = {
@@ -67,7 +70,7 @@ export class GameMenu extends StateManager<GameState> {
             Playfield.DefaultID
         );
         if (!playfield) return;
-        playfield.startGame();
+        playfield.startGame(this.mapSize);
         playfield.registerObjects();
     }
     removeObjects(): void {

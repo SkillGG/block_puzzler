@@ -32,8 +32,8 @@ export const $$ = (
 ): HTMLElement => {
     if (!name) name = "div";
     const nameRX = /^(.*?)((?:\.|#).*)*$/.exec(name);
-    if (nameRX && nameRX[1]) {
-        name = nameRX[1];
+    if (nameRX && nameRX[1] !== undefined) {
+        name = nameRX[1] || "div";
         const specifier = nameRX[2];
         const classes: string[] = [];
         const classRX = /\.(.*?)(?=\.|#|$)/g;
@@ -50,6 +50,8 @@ export const $$ = (
         props.id = props.id || id;
         props["class"] =
             (props["class"] ? props["class"] + " " : "") + classes.join(" ");
+        if (!props["class"]) delete props["class"];
+        if (!props.id) delete props.id;
     }
     const element = document.createElement(name);
     Object.entries(props || []).forEach((prop) => {
@@ -61,13 +63,20 @@ export const $$ = (
 };
 
 export const $ =
-    (strings: TemplateStringsArray) =>
+    (strings: TemplateStringsArray, ...params: string[]) =>
     ({
         props: p,
         children: c,
         _html: h,
     }: { props?: PropList; children?: ChildArray; _html?: string } = {}) =>
-        $$(strings[0], p, c, h);
+        $$(
+            strings.reduce((p, n, i) => {
+                return `${p}${n}${params[i] || ""}`;
+            }, ""),
+            p,
+            c,
+            h
+        );
 
 export const getHTMLBoxes = (s: string[]) => {
     return s.map((q) => document.querySelector(q));

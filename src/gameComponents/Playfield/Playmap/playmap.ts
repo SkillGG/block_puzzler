@@ -7,6 +7,8 @@ import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
 
 export class PlayMap implements Updateable {
+    gameOver = false;
+
     private pos: Vector_2;
 
     private _tiles: Tile[][] = [];
@@ -43,9 +45,21 @@ export class PlayMap implements Updateable {
         return this._tiles[0].length;
     }
 
+    private get emptyTiles() {
+        return this._tiles.flat(1).filter((t) => t.color === TileColor.NONE);
+    }
+
+    private get tilesArr() {
+        return this._tiles.flat(1);
+    }
+
     private playable: boolean = false;
 
     private numberOfMoves = 0;
+
+    get moveCount() {
+        return this.numberOfMoves;
+    }
 
     private playfield: Playfield;
 
@@ -84,6 +98,11 @@ export class PlayMap implements Updateable {
         this.playable = true;
     }
 
+    start() {
+        this.numberOfMoves = 0;
+        this.gameOver = false;
+    }
+
     destroy() {
         this._tiles = [];
         this.playable = false;
@@ -117,7 +136,7 @@ export class PlayMap implements Updateable {
                 this.numberOfMoves
             );
             if (randomColor !== TileColor.NONE && t.color !== randomColor) {
-                LogI("swapping colors for tile", t.id, "to ", randomColor);
+                // LogI("swapping colors for tile", t.id, "to ", randomColor);
                 t.setColor(randomColor);
                 coloredTiles++;
             }
@@ -153,7 +172,14 @@ export class PlayMap implements Updateable {
             } else if (col >= this.tiles.length || row > this.tiles.length) {
                 LogE("Coords out of bounds", col, row);
             }
-            throw "Error getting tile";
+            console.log(
+                this.tiles,
+                row,
+                col,
+                col < this.tiles.length,
+                (row || 0) < this.tiles[col].length
+            );
+            throw "Error getting tile " + col + "/" + row;
         }
     }
 
@@ -174,8 +200,6 @@ export class PlayMap implements Updateable {
         if (!tile1) throw `Tile not found ${t1}`;
         if (!tile2) throw `Tile not found ${t2}`;
 
-        LogI("Swapping tile", tile1.id, tile2.id);
-
         tile1.moveToTile(t2);
         tile2.moveToTile(t1);
         tile1.unmarkSelected();
@@ -192,23 +216,25 @@ export class PlayMap implements Updateable {
 
     selectTile(t: Tile) {
         this.selectedTile = t.coords;
-        LogI("Selected tile", t.id, t.coords);
+        // LogI("Selected tile", t.id, t.coords);
         t.markSelected();
     }
 
     deselectTile(t: Tile) {
         this.selectedTile = null;
-        LogI("Deselected tile", t.id, t.coords);
+        // LogI("Deselected tile", t.id, t.coords);
         t.unmarkSelected();
     }
 
     clogDelta: number = 0;
 
-    removeClusteredTiles() {
+    getClusteredTiles() {
+        const clusters: Tile[][] = [];
         this.eachTile(
             (t) => {
                 if (t.coords.row >= this.rowNum - 1) return;
                 if (t.coords.col >= this.colNum - 1) return;
+                if (clusters.find((f) => f.find((tx) => tx === t))) return;
                 const leftTile = this.getTile(t.coords.col + 1, t.coords.row);
                 const bottomTile = this.getTile(t.coords.col, t.coords.row + 1);
                 const diagonalTile = this.getTile(
@@ -221,48 +247,121 @@ export class PlayMap implements Updateable {
                     diagonalTile.color === t.color
                 ) {
                     // remove colors
-                    t.color =
-                        leftTile.color =
-                        bottomTile.color =
-                        diagonalTile.color =
-                            TileColor.NONE;
-                    // add Points
-                    this.playfield.addPoints(4);
+                    clusters.push([t, leftTile, bottomTile, diagonalTile]);
                 }
             },
             (t) => t.color !== TileColor.NONE
         );
+        return clusters;
+    }
+
+    consolelogTiles(map?: (t: Tile) => any) {
+        console.log(
+            this.tiles
+                .flat(1)
+                .map(map ? map : (t) => t)
+                .reduce((p, n, i) => {
+                    if ((i + 1) % this.colNum === 0) {
+                        return `${p} ${n}\n`;
+                    } else return `${p} ${n}`;
+                }, "")
+        );
+    }
+
+    checkEndGame() {
+        const emTiles = this.emptyTiles;
+        if (emTiles.length === 0) return true;
+        const canDestroyIfTilesChange = (tilesToCheck: Tile[], depth = 0) => {
+            const firstTile = tilesToCheck[0];
+            const restTiles = tilesToCheck.splice(1);
+
+            for (const color of Object.values(TileColor).filter(
+                (tc) => tc !== TileColor.NONE
+            )) {
+                firstTile.color = color;
+                if (this.getClusteredTiles().length > 0) {
+                    firstTile.color = TileColor.NONE;
+                    return true;
+                } else if (restTiles.length > 0) {
+                    if (canDestroyIfTilesChange(restTiles, ++depth)) {
+                        firstTile.color = TileColor.NONE;
+                        return true;
+                    }
+                }
+            }
+
+            firstTile.color = TileColor.NONE;
+
+            return false;
+        };
+        const canDestroyTilesIfSwapped = () => {
+            for (const coloredTile of this.tilesArr.filter(
+                (t) => t.color !== TileColor.NONE
+            )) {
+                // check if single swap will make it possible
+                const origColor = coloredTile.color;
+                const emptyTiles = [...this.emptyTiles];
+                for (const emptyTile of emptyTiles) {
+                    emptyTile.color = origColor;
+                    coloredTile.color = TileColor.NONE;
+                    const destroyable = canDestroyIfTilesChange(
+                        this.emptyTiles
+                    );
+                    // cleanup
+                    coloredTile.color = origColor;
+                    emptyTile.color = TileColor.NONE;
+                    if (destroyable) return true;
+                }
+            }
+            return false;
+        };
+        return !(
+            canDestroyIfTilesChange(emTiles) || canDestroyTilesIfSwapped()
+        );
+    }
+
+    removeClusteredTiles() {
+        const clusters = this.getClusteredTiles();
+        if (clusters.length <= 0) return;
+        console.log("Removing cluster!", clusters);
+        clusters.forEach((c) => {
+            c.forEach((t) => (t.color = TileColor.NONE));
+            this.playfield.addPoints(4);
+        });
     }
 
     update(time: number) {
         if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
-            let clickFinished = false;
-            this.eachTile((t) => {
-                if (clickFinished) return;
-                if (Game.input.isMouseIn(t.bounds)) {
-                    // clicked a tile
-                    if (this.selectedTile) {
-                        if (
-                            t.coords.row === this.selectedTile.row &&
-                            t.coords.col === this.selectedTile.col
-                        ) {
-                            this.deselectTile(t);
-                        } else if (t.color === TileColor.NONE) {
-                            LogI(
-                                "Clicked coords",
-                                t.coords,
-                                "To swap with",
-                                t.id
-                            );
-                            this.swapTiles(t.coords, this.selectedTile);
+            if (!this.gameOver) {
+                let clickFinished = false;
+                this.eachTile((t) => {
+                    if (clickFinished) return;
+                    if (Game.input.isMouseIn(t.bounds)) {
+                        // clicked a tile
+                        if (this.selectedTile) {
+                            if (
+                                t.coords.row === this.selectedTile.row &&
+                                t.coords.col === this.selectedTile.col
+                            ) {
+                                this.deselectTile(t);
+                            } else if (t.color === TileColor.NONE) {
+                                this.swapTiles(t.coords, this.selectedTile);
+                            }
+                        } else {
+                            if (t.color !== TileColor.NONE) this.selectTile(t);
                         }
-                    } else {
-                        if (t.color !== TileColor.NONE) this.selectTile(t);
+                        clickFinished = true;
                     }
-                    clickFinished = true;
+                });
+                this.removeClusteredTiles();
+                const endGame = this.checkEndGame();
+                if (endGame) {
+                    this.gameOver = true;
+                    this.playfield.gameOver();
+                } else if (this.emptyTiles.length === this.tilesArr.length) {
+                    this.randomizeTileValues(Playfield.randomTileColor_EASY);
                 }
-            });
-            this.removeClusteredTiles();
+            }
         }
         this.clogDelta += time;
     }

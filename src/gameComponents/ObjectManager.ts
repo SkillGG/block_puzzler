@@ -70,10 +70,10 @@ export class ObjectManager<AvailableStates extends string>
     render(ctx: CanvasRenderingContext2D) {
         const objectsFromThisState = this.stateObjects.get(this.currentState);
         if (objectsFromThisState) {
-            this.divideByZ(objectsFromThisState).forEach((z) => {
-                z.forEach((obj) => {
+            this.divideByZ(objectsFromThisState).forEach((zLayer) => {
+                zLayer.forEach((obj) => {
                     ctx.beginPath();
-                    obj.render(ctx);
+                    obj.safeCTXRender(ctx);
                     ctx.closePath();
                 });
             });

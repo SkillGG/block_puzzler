@@ -28,22 +28,24 @@ export class Label extends BoundedGameObject {
     text: string;
     border: Rectangle;
     style: LabelTextStyle;
+    initStyle: LabelWithBorderStyle;
     constructor(
         id: string,
         bounds: RectangleBounds,
         text: string = "",
-        style?: LabelWithBorderStyle
+        style?: LabelWithBorderStyle,
+        zIndex?: number
     ) {
-        super(id, bounds);
+        super(id, bounds, zIndex);
         this.text = text;
         this.style = { ...LabelDefaultStyle, ...style?.label };
         this.border = new Rectangle(`${id}_border`, this.bounds, {
             ...style?.border,
         });
+        this.initStyle = { ...style };
     }
     render(ctx: CanvasRenderingContext2D): void {
         this.border.render(ctx);
-        ctx.fillStyle = this.style.textColor;
         ctx.font = this.style.font;
         const textBounds = ctx.measureText(this.text);
         const textWidth =
@@ -66,7 +68,13 @@ export class Label extends BoundedGameObject {
                 : this.style.justify === "bottom"
                 ? this.bounds.y + this.bounds.height - textHeight
                 : this.bounds.y + (boundHeight + textHeight) / 2;
-        ctx.fillText(this.text, textX, textY, textWidth + 4);
+        ctx.fillStyle = this.style.textColor;
+        ctx.fillText(
+            this.text,
+            textX,
+            textY,
+            this.bounds.width - this.border.style.strokeWidth * 2
+        );
     }
     update(): void {}
 }

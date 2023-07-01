@@ -18,13 +18,15 @@ export class Rectangle extends BoundedGameObject {
     constructor(
         id: string,
         bounds: RectangleBounds,
-        style?: Partial<RectangleStyle>
+        style?: Partial<RectangleStyle>,
+        zIndex?: number
     ) {
-        super(id, bounds);
+        super(id, bounds, zIndex);
         this.style = { ...RectangleDefaultStyle, ...style };
     }
     update() {}
     render(ctx: CanvasRenderingContext2D) {
+        if (this.bounds.width * this.bounds.height === 0) return;
         ctx.fillStyle = this.style.fillColor;
         ctx.strokeStyle = this.style.strokeColor;
         ctx.lineWidth = this.style.strokeWidth;

@@ -5,6 +5,7 @@ import { Label } from "@component/Primitives/Label/Label";
 import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
 import { Game } from "./game";
 import { $ } from "@utils/utils";
+import { Playfield } from "@component/Playfield/playfield";
 
 declare global {
     interface Window {
@@ -59,9 +60,48 @@ export class GameOptions<T extends string> {
     }
     stateManager: OptionsStateManager<T> | null = null;
     points: number = 0;
+    get moves() {
+        const osm = Game.instance?.manager.getStateManager<Playfield>(
+            Playfield.DefaultID
+        );
+        if (!osm) return 0;
+        return osm.map.moveCount;
+    }
     constructor(box: HTMLDivElement) {
         this.optionsBox = box;
         GameOptions.instance = this;
+    }
+
+    private _gameOver = false;
+
+    gameOver() {
+        this._gameOver = true;
+    }
+
+    gameRestarted() {
+        this._gameOver = false;
+        this.points = 0;
+        // save highscore
+    }
+
+    updateOrCreateStat(
+        query: [string, string],
+        value: string,
+        statName: string
+    ) {
+        const elem = this.optionsBox.querySelector<HTMLSpanElement>(query[0]);
+        if (!elem) {
+            this.optionsBox.append(
+                $`.stat`({
+                    children: [
+                        $`span`({ _html: statName }),
+                        $`${query[1]}`({ _html: value }),
+                    ],
+                })
+            );
+        } else {
+            elem.innerHTML = value;
+        }
     }
 
     refreshUI() {
@@ -69,24 +109,20 @@ export class GameOptions<T extends string> {
             this.stateManager?.refreshUI();
             return;
         }
-
-        if (this.stateManager?.manager.currentState === GameState.GAME) {
-            const pts =
-                this.optionsBox.querySelector<HTMLSpanElement>(
-                    "span.gamePoints"
-                );
-            if (!pts) {
-                this.optionsBox.append(
-                    $`div`({
-                        children: [
-                            $`span`({ _html: "Points" }),
-                            $`span.gamePoints`({ _html: `${this.points}` }),
-                        ],
-                    })
-                );
-            } else {
-                pts.innerHTML = `${this.points}`;
-            }
+        if (
+            this.stateManager?.manager.currentState === GameState.GAME &&
+            !this._gameOver
+        ) {
+            this.updateOrCreateStat(
+                ["span.gamePoints", "span.gamePoints.gameStatValue"],
+                `${this.points}`,
+                "Points:"
+            );
+            this.updateOrCreateStat(
+                ["span.gameMoves", "span.gameMoves.gameStatValue"],
+                `${this.moves}`,
+                "Moves:"
+            );
         } else {
             this.optionsBox.innerHTML = "";
         }

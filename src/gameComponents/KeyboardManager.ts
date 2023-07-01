@@ -88,7 +88,6 @@ export class InputManager implements Updateable {
     }
     handleKeyUp(e: KeyboardEvent) {
         this.keysPressed.delete(e.code);
-        console.log("key up ", e.code);
         e.preventDefault();
     }
     handleMouseUp(e: MouseEvent) {
@@ -97,7 +96,6 @@ export class InputManager implements Updateable {
         e.preventDefault();
     }
     handleMouseDown(e: MouseEvent) {
-        console.log("Mouse pos", e.clientX, e.clientY);
         this.mouseButtonsPressed.add(e.button);
         e.preventDefault();
     }

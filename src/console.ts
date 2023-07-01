@@ -28,6 +28,23 @@ export class DevConsole {
     constructor(element: HTMLDivElement) {
         this.consoleWindow = element;
         DevConsole.instance = this;
+        const head =
+            this.consoleWindow.parentElement?.querySelector("#consoleHead");
+        if (head) {
+            head.replaceWith(
+                $`#consoleHead`({
+                    _html: "Console ",
+                    children: [
+                        $`span#clearConsole`({
+                            _html: "Clear",
+                            props: {
+                                onclick: "gameconsole.clear();",
+                            },
+                        }),
+                    ],
+                })
+            );
+        }
     }
     clear() {
         this.logs = [];

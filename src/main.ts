@@ -6,6 +6,7 @@ import { GameOptions } from "./options";
 import { GameMenu } from "@component/Menu/menu";
 import { FpsCounter } from "./gameComponents/FpsCounter/fpsCounter";
 import { Playfield } from "@component/Playfield/playfield";
+import { Tile } from "@component/Playfield/Tile/tile";
 
 export enum GameState {
     MENU = "MENU",
@@ -52,6 +53,10 @@ game.manager.addObject(fpsCounter, GameState.MENU);
 game.manager.addStateManager(new GameMenu(game.manager));
 game.manager.getStateManager(GameMenu.DefaultID)?.registerObjects();
 game.manager.addStateManager(new Playfield(game.manager));
+
+game.manager
+    .getObject("start_button", GameState.MENU)!
+    .safeCTXRender(game.getContext("2d")!);
 
 /**
  * Game loop

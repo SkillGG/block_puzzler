@@ -33,9 +33,10 @@ export class Button extends BoundedGameObject {
         bounds: RectangleBounds,
         on: ButtonOnCalls,
         label?: string,
-        style?: ButtonStyle
+        style?: ButtonStyle,
+        zIndex?: number
     ) {
-        super(id, bounds);
+        super(id, bounds, zIndex);
         this.onCalls = on;
         this.label = new Label(`${id}_label`, bounds, label, style);
     }

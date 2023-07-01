@@ -16,6 +16,37 @@ export const denormalizeVector2RelativeToElement = (
     v: Vector2
 ): Vector2 => [v[0] - elem.offsetLeft, v[1] - elem.offsetTop];
 
+export const CTXSavedProperties: Set<keyof CanvasRenderingContext2D> = new Set([
+    "lineWidth",
+    "lineCap",
+    "lineJoin",
+    "miterLimit",
+    "lineDashOffset",
+    "font",
+    "textAlign",
+    "textBaseline",
+    "direction",
+    "fontKerning",
+    "fillStyle",
+    "strokeStyle",
+    "shadowBlur",
+    "shadowColor",
+    "shadowOffsetX",
+    "shadowOffsetY",
+    "globalAlpha",
+    "globalCompositeOperation",
+    "imageSmoothingEnabled",
+    "imageSmoothingQuality",
+]);
+
+export const getCTXProperties = (ctx: CanvasRenderingContext2D) => {
+    return Object.fromEntries(
+        [...CTXSavedProperties].map((prop) => {
+            return [prop, ctx[prop]];
+        })
+    ) as Record<keyof CanvasRenderingContext2D, any>;
+};
+
 export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
@@ -55,6 +86,9 @@ export class Game<T extends string>
         return [Game.getWidth(), Game.getHeight()];
     }
 
+    static defaultCTX: Record<keyof CanvasRenderingContext2D, any>;
+
+
     constructor(
         devConsole: DevConsole,
         options: GameOptions<T>,
@@ -73,6 +107,7 @@ export class Game<T extends string>
         this.canvasContext = cC;
         this.width = this.gameWidth;
         this.height = this.gameHeight;
+        Game.defaultCTX = getCTXProperties(cC);
         Game.instance = this;
     }
     getComputedStyle() {

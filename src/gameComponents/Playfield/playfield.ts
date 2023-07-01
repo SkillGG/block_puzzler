@@ -5,6 +5,7 @@ import { PlayMap } from "@component/Playfield/Playmap/playmap";
 import { Tile, TileColor } from "./Tile/tile";
 import { randomInt } from "@utils/utils";
 import { GameOptions } from "@/options";
+import { GameOverScreen } from "./gameOverScreen";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
@@ -13,14 +14,17 @@ export class Playfield extends StateManager<GameState> {
     }
 
     map: PlayMap;
+    gameOverScreen: GameOverScreen;
 
     constructor(manager: ObjectManager<GameState>) {
         super(Playfield.DefaultID, manager, GameState.GAME);
         this.map = new PlayMap({ x: 0, y: 50 }, this);
+        this.gameOverScreen = new GameOverScreen(this);
+        this.manager.addStateManager(this.gameOverScreen);
     }
 
-    private init() {
-        this.map.createAMap(6, 6);
+    private init(mapSize: number) {
+        this.map.createAMap(mapSize, mapSize);
     }
 
     static randomTileColor = () => {
@@ -52,8 +56,24 @@ export class Playfield extends StateManager<GameState> {
         return TileColor.NONE;
     };
 
-    startGame() {
-        this.init();
+    startGame(ms: number) {
+        this.init(ms);
+        const osm = GameOptions.instance;
+        if (!osm) return;
+        osm.gameRestarted();
+        this.map.start();
+    }
+
+    restartGame(mapSize: number) {
+        this.gameOverScreen.removeObjects();
+        this.startGame(mapSize);
+    }
+
+    gameOver() {
+        this.gameOverScreen.registerObjects();
+        const osm = GameOptions.instance;
+        if (!osm) return;
+        osm.gameOver();
     }
     removeObjects(): void {
         this.map.eachTile((t) => this.removeObject(t));
