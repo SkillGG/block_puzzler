@@ -68,7 +68,7 @@ body {
 #optionsBox .gameStatValue {
   float: right;
 }
-@media only screen and (max-width: 820px) {
+@media only screen and (max-width: calc(600px + 100px)) {
   #page {
     display: block;
   }
@@ -87,7 +87,7 @@ body {
     max-width: 600px;
   }
 }
-@media only screen and (max-height: 805px) {
+@media only screen and (max-height: calc(900px + 5px)) {
   #gameBox canvas {
     max-height: 100vh;
   }

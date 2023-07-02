@@ -55,7 +55,7 @@ export class Game<T extends string>
     running: boolean = false;
     manager: ObjectManager<T>;
     static readonly WIDTH = 600;
-    static readonly HEIGHT = 600;
+    static readonly HEIGHT = 900;
     readonly gameHeight: number = Game.HEIGHT;
     readonly gameWidth: number = Game.WIDTH;
     readonly devConsole: DevConsole;
