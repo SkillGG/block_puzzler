@@ -1,0 +1,15 @@
+{
+    "name": "BlockPuzzle",
+    "short_name": "BlockPuzzle",
+    "description": "Block Puzzle The Game",
+    "start_url": "/",
+    "theme_color": "#eeffee",
+    "background_color": "#eeffee",
+    "display": "fullscreen",
+    "icons": [
+        {
+            "src": "icon.ico",
+            "sizes": "16x16 32x32 256x256"
+        }
+    ]
+}
