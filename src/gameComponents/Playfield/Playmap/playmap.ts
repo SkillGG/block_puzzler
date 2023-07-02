@@ -5,6 +5,7 @@ import { Updateable } from "@component/interfaces";
 import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
 import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
+import { Astar, AstarPath, Grid } from "@utils/astar";
 
 export class PlayMap implements Updateable {
     gameOver = false;
@@ -258,6 +259,7 @@ export class PlayMap implements Updateable {
                 if (tile.color === TileColor.NONE) continue;
                 if (tile.coords.row >= this.rowNum - 1) continue;
                 if (tile.coords.col >= this.colNum - 1) continue;
+                if (clusters.find((c) => c.find((x) => x === tile))) continue;
                 const leftTile = row[j + 1];
                 if (leftTile.color !== tile.color) continue;
                 const bottomTile = tiles[i + 1][j];
@@ -282,6 +284,10 @@ export class PlayMap implements Updateable {
                     } else return `${p} ${n}`;
                 }, "")
         );
+    }
+
+    canSwapTiles(t1: TileCoords, t2: TileCoords) {
+        return !!this.getAstarPath(t1, t2)?.length;
     }
 
     checkEndGame() {
@@ -319,6 +325,10 @@ export class PlayMap implements Updateable {
                 const origColor = coloredTile.color;
                 const emptyTiles = [...this.emptyTiles];
                 for (const emptyTile of emptyTiles) {
+                    if (
+                        !this.canSwapTiles(emptyTile.coords, coloredTile.coords)
+                    )
+                        continue;
                     emptyTile.color = origColor;
                     coloredTile.color = TileColor.NONE;
                     const destroyable = canDestroyIfTilesChange(
@@ -350,6 +360,23 @@ export class PlayMap implements Updateable {
         });
     }
 
+    getAstarPath(t1: TileCoords, t2: TileCoords): AstarPath | null {
+        const grid = new Grid(10, 10);
+        const astar = new Astar(grid);
+        this.eachTile(
+            (t) => {
+                grid.occupyNode(t.coords.col, t.coords.row);
+            },
+            (t) => t.color !== TileColor.NONE
+        );
+        return astar.search(t1.col, t1.row, t2.col, t2.row);
+    }
+
+    canMoveTo(t: TileCoords) {
+        if (!this.selectedTile) return false;
+        return this.canSwapTiles(this.selectedTile, t);
+    }
+
     update(time: number) {
         if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
             if (!this.gameOver) {
@@ -365,20 +392,29 @@ export class PlayMap implements Updateable {
                             ) {
                                 this.deselectTile(t);
                             } else if (t.color === TileColor.NONE) {
-                                this.swapTiles(t.coords, this.selectedTile);
-                                this.removeClusteredTiles();
-                                const endGame = this.checkEndGame();
-                                if (endGame) {
-                                    this.gameOver = true;
-                                    this.playfield.gameOver();
-                                } else if (
-                                    this.emptyTiles.length ===
-                                    this.tilesArr.length
-                                ) {
-                                    this.randomizeTileValues(
-                                        Playfield.randomTileColor_EASY
-                                    );
+                                if (this.canMoveTo(t.coords)) {
+                                    this.swapTiles(t.coords, this.selectedTile);
+                                    this.removeClusteredTiles();
+                                    const endGame = this.checkEndGame();
+                                    if (endGame) {
+                                        this.gameOver = true;
+                                        this.playfield.gameOver();
+                                    } else if (
+                                        this.emptyTiles.length ===
+                                        this.tilesArr.length
+                                    ) {
+                                        this.randomizeTileValues(
+                                            Playfield.randomTileColor_EASY
+                                        );
+                                    }
+                                } else {
+                                    LogE("Cannot move here!");
                                 }
+                            } else {
+                                this.deselectTile(
+                                    this.getTile(this.selectedTile)
+                                );
+                                this.selectTile(t);
                             }
                         } else {
                             if (t.color !== TileColor.NONE) this.selectTile(t);

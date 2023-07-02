@@ -95,6 +95,13 @@ export class Tile extends BoundedGameObject {
         );
         ctx.fill();
         ctx.stroke();
+        ctx.font = "normal 1.3em auto";
+        ctx.fillStyle = "black";
+        ctx.fillText(
+            this.id.replace("tile", ""),
+            this.bounds.x + 3,
+            this.bounds.y + 20
+        );
     }
     setColor(c: TileColor) {
         if (!c) return;
