@@ -6,6 +6,7 @@ import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds
 import { Game } from "./game";
 import { $ } from "@utils/utils";
 import { Playfield } from "@component/Playfield/playfield";
+import { Button } from "@component/Primitives/Button/button";
 
 declare global {
     interface Window {
@@ -19,8 +20,12 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         return OptionsStateManager.DefaultID;
     }
 
+    areRegistered = false;
+
     pointsLabel: Label;
     movesLabel: Label;
+
+    dragLabel: Button;
 
     parent: GameOptions<T>;
 
@@ -42,19 +47,49 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
                 label: { align: "right", font: "normal 1em auto" },
             }
         );
+        this.dragLabel = new Button(
+            "dragLabel",
+            new RectangleBounds(
+                Game.getWidth() - 200,
+                Game.getHeight() - 48,
+                150,
+                30
+            ),
+            {
+                onclick: () => {
+                    this.parent.autoPlaceAfterDrag =
+                        !this.parent.autoPlaceAfterDrag;
+                },
+            },
+            "Confirm\nDrag",
+            {
+                label: { align: "center", font: "normal 1em auto" },
+            }
+        );
         this.parent = parent;
     }
     refreshUI() {
         this.pointsLabel.text = `Points: ${this.parent.points}`;
         this.movesLabel.text = `Moves: ${this.parent.moves}`;
+        if (Game.input.pointerType === "touch")
+            this.dragLabel.label.text = this.parent.autoPlaceAfterDrag
+                ? "DragConfirm: false"
+                : "DragConfirm: true";
+        else this.dragLabel.label.text = "";
     }
     removeObjects(): void {
+        if (!this.areRegistered) return;
         this.removeObject(this.pointsLabel);
         this.removeObject(this.movesLabel);
+        this.removeObject(this.dragLabel);
+        this.areRegistered = false;
     }
     registerObjects(): void {
+        if (this.areRegistered) return;
         this.registerObject(this.pointsLabel);
+        this.registerObject(this.dragLabel);
         this.registerObject(this.movesLabel);
+        this.areRegistered = true;
     }
     update(): void {
         this.refreshUI();
@@ -70,6 +105,9 @@ export class GameOptions<T extends string> {
     }
     stateManager: OptionsStateManager<T> | null = null;
     points: number = 0;
+
+    autoPlaceAfterDrag: boolean = false;
+
     get moves() {
         const osm = Game.instance?.manager.getStateManager<Playfield>(
             Playfield.DefaultID
@@ -122,7 +160,8 @@ export class GameOptions<T extends string> {
 
     refreshUI() {
         if (this.isHidden) {
-            this.stateManager?.registerObjects();
+            if (!this.stateManager?.areRegistered)
+                this.stateManager?.registerObjects();
             this.stateManager?.refreshUI();
             return;
         } else {

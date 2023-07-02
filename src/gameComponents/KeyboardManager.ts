@@ -9,9 +9,11 @@ export const RIGHT_MOUSE_BUTTON = 2;
 
 export class InputManager implements Updateable {
     keysPressed: Set<string>;
-    mouseButtonsPressed: Set<number>;
-    mouseButtonsClicked: Set<number>;
+    pointerButtonsPressed: Set<number>;
+    pointerButtonsClicked: Set<number>;
+    pointerStateChanged = false;
     allowedKeys: Set<string>;
+    _prevMousePostiion: Vector2;
     _mousePosition: Vector2;
 
     get mousePosition(): Vector2 {
@@ -27,22 +29,26 @@ export class InputManager implements Updateable {
 
     private firstUpdate = false;
 
+    pointerType: "mouse" | "touch" = "mouse";
+
     constructor() {
         window.onkeydown = this.handleKeyDown.bind(this);
         window.onkeyup = this.handleKeyUp.bind(this);
-        window.onmousedown = this.handleMouseDown.bind(this);
-        window.onmouseup = this.handleMouseUp.bind(this);
+        window.onpointerdown = this.handlePointerDown.bind(this);
+        window.onpointerup = this.handlePointerUp.bind(this);
         window.oncontextmenu = (e) => e.preventDefault();
-        window.onmousemove = this.handleMouseMove.bind(this);
+        window.onpointermove = this.handlePointerMove.bind(this);
         window.onresize = this.handleResize.bind(this);
         this.keysPressed = new Set();
         this.allowedKeys = new Set(["F12", "F5"]);
-        this.mouseButtonsPressed = new Set();
-        this.mouseButtonsClicked = new Set();
+        this.pointerButtonsPressed = new Set();
+        this.pointerButtonsClicked = new Set();
+        this.pointerStateChanged = false;
         this._mousePosition = [0, 0];
+        this._prevMousePostiion = [0, 0];
         this.mouseInputScale = { x: 1, y: 1 };
     }
-    isMouseIn(rect: RectangleBounds) {
+    isPointerIn(rect: RectangleBounds) {
         const checkRect = new RectangleBounds(
             Game.getRelativeVector(rect.getPosition()),
             rect.getSize()
@@ -50,7 +56,36 @@ export class InputManager implements Updateable {
         return checkRect.hasPoint(this.mousePosition);
     }
     hasMouseClicked(button: number) {
-        return this.mouseButtonsClicked.has(button);
+        return (
+            this.pointerType === "mouse" &&
+            this.pointerButtonsClicked.has(button)
+        );
+    }
+    hasPointerMoved() {
+        return !(
+            this._mousePosition[0] === this._prevMousePostiion[0] &&
+            this._mousePosition[1] === this._prevMousePostiion[1]
+        );
+    }
+    hasTouchClicked() {
+        return (
+            this.pointerType === "touch" &&
+            this.pointerButtonsClicked.has(LEFT_MOUSE_BUTTON)
+        );
+    }
+    hasReleasedTouch() {
+        return (
+            this.pointerType === "touch" &&
+            this.pointerStateChanged &&
+            this.pointerButtonsPressed.size === 0
+        );
+    }
+    hasPressedTouch() {
+        return (
+            this.pointerType === "touch" &&
+            this.pointerStateChanged &&
+            this.pointerButtonsPressed.size > 0
+        );
     }
     isPressed(code: string) {
         return this.keysPressed.has(code);
@@ -79,24 +114,37 @@ export class InputManager implements Updateable {
             ? "Right"
             : "Both";
     }
+    setPointerType(e: PointerEvent) {
+        if (e.pointerType === this.pointerType) return;
+        if (e.pointerType === "mouse") {
+            this.pointerType = e.pointerType;
+        } else if (e.pointerType === "touch") {
+            this.pointerType = e.pointerType;
+        }
+    }
     handleKeyDown(e: KeyboardEvent) {
         this.keysPressed.add(e.code);
         if (!this.allowedKeys.has(e.code)) e.preventDefault();
     }
-    handleMouseMove(e: MouseEvent) {
+    handlePointerMove(e: PointerEvent) {
+        this.setPointerType(e);
         this._mousePosition = [e.clientX, e.clientY];
     }
     handleKeyUp(e: KeyboardEvent) {
         this.keysPressed.delete(e.code);
         e.preventDefault();
     }
-    handleMouseUp(e: MouseEvent) {
-        this.mouseButtonsPressed.delete(e.button);
-        this.mouseButtonsClicked.add(e.button);
+    handlePointerUp(e: PointerEvent) {
+        this.handlePointerMove(e);
+        this.pointerButtonsPressed.delete(e.button);
+        this.pointerButtonsClicked.add(e.button);
+        this.pointerStateChanged = true;
         e.preventDefault();
     }
-    handleMouseDown(e: MouseEvent) {
-        this.mouseButtonsPressed.add(e.button);
+    handlePointerDown(e: PointerEvent) {
+        this.handlePointerMove(e);
+        this.pointerButtonsPressed.add(e.button);
+        this.pointerStateChanged = true;
         e.preventDefault();
     }
     getMouseInputScaleFactors(): Vector_2 {
@@ -124,7 +172,8 @@ export class InputManager implements Updateable {
         this.mouseInputScale = this.getMouseInputScaleFactors();
     }
     update() {
-        this.mouseButtonsClicked = new Set();
+        this.pointerStateChanged = false;
+        this.pointerButtonsClicked = new Set();
         if (!this.firstUpdate) {
             this.handleResize();
             this.firstUpdate = true;

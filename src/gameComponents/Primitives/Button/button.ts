@@ -44,18 +44,18 @@ export class Button extends BoundedGameObject {
     update() {
         const { _mousePosition: mousePos } = Game.input;
         const MouseEvent = { mousePos, target: this };
-        if (Game.input.isMouseIn(this.bounds)) {
+        if (Game.input.isPointerIn(this.bounds)) {
             if (this.isIn === false) this.onCalls.onenter?.(MouseEvent);
             this.isIn = true;
         } else {
             if (this.isIn === true) this.onCalls.onleave?.(MouseEvent);
             this.isIn = false;
         }
-        if (Game.input.mouseButtonsClicked.size > 0 && this.isIn) {
+        if (Game.input.pointerButtonsClicked.size > 0 && this.isIn) {
             this.onCalls.onclick?.({
                 ...MouseEvent,
                 button: new Set(
-                    [...Game.input.mouseButtonsClicked].map((q) =>
+                    [...Game.input.pointerButtonsClicked].map((q) =>
                         q === LEFT_MOUSE_BUTTON
                             ? "left"
                             : q === RIGHT_MOUSE_BUTTON

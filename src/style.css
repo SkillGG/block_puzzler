@@ -54,6 +54,10 @@ body {
   padding-top: 25px;
   max-height: 100%;
 }
+#consoleBox canvas {
+  user-zoom: fixed;
+  touch-action: none;
+}
 #optionsBox {
   width: 100%;
   background-color: #444e;

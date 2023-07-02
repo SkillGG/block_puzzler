@@ -6,6 +6,7 @@ import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
 import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
 import { Astar, AstarPath, Grid } from "@utils/astar";
+import { GameOptions } from "@/options";
 
 export class PlayMap implements Updateable {
     gameOver = false;
@@ -502,8 +503,6 @@ export class PlayMap implements Updateable {
 
                 let from: "L" | "R" | "T" | "B" = "T";
 
-                console.log(offsets);
-
                 if (offsets[0][0] === 0) {
                     // from TB
                     if (offsets[0][1] === -1) from = "T";
@@ -558,6 +557,13 @@ export class PlayMap implements Updateable {
         }
     }
 
+    clearPath() {
+        const sT = this.selectedTile;
+        this.selectedTile = null;
+        this.drawHoverPath();
+        this.selectedTile = sT;
+    }
+
     setHoveredTile() {
         const changeHovered = (t: Tile | null) => {
             this.hoveredTile = t;
@@ -566,13 +572,13 @@ export class PlayMap implements Updateable {
         };
 
         if (this.hoveredTile) {
-            if (Game.input.isMouseIn(this.hoveredTile.bounds)) return;
+            if (Game.input.isPointerIn(this.hoveredTile.bounds)) return;
 
             const neighbours = this.getNeighbours(this.hoveredTile.coords, 1);
 
             for (let i = 0; i < neighbours.length; i++) {
                 const neighbour = neighbours[i];
-                if (Game.input.isMouseIn(neighbour.bounds)) {
+                if (Game.input.isPointerIn(neighbour.bounds)) {
                     changeHovered(neighbour);
                     return;
                 }
@@ -582,7 +588,7 @@ export class PlayMap implements Updateable {
                 (t) => !neighbours.find((q) => q === t)
             );
             for (let i = 0; i < notNear.length; i++) {
-                if (Game.input.isMouseIn(notNear[i].bounds)) {
+                if (Game.input.isPointerIn(notNear[i].bounds)) {
                     changeHovered(notNear[i]);
                     return;
                 }
@@ -590,7 +596,7 @@ export class PlayMap implements Updateable {
         } else {
             const allTiles = this.tilesArr;
             for (let i = 0; i < allTiles.length; i++) {
-                if (Game.input.isMouseIn(allTiles[i].bounds)) {
+                if (Game.input.isPointerIn(allTiles[i].bounds)) {
                     changeHovered(allTiles[i]);
                     return;
                 }
@@ -599,13 +605,35 @@ export class PlayMap implements Updateable {
         if (this.hoveredTile) changeHovered(null);
     }
 
+    dragging = false;
+    readonly DEFAULT_DRAG_TIMEOUT = 3;
+    considerDrag: number = -this.DEFAULT_DRAG_TIMEOUT;
+
+    confirmPlacement: TileCoords | null = null;
+
     update(time: number) {
         // const start = performance.now();
+
+        const confirmMove = (tile1: TileCoords, tile2: TileCoords) => {
+            if (this.canMoveTo(tile1)) {
+                this.swapTiles(tile1, tile2);
+                this.removeClusteredTiles();
+                const endGame = this.checkEndGame();
+                if (endGame) {
+                    this.gameOver = true;
+                    this.playfield.gameOver();
+                } else if (this.emptyTiles.length === this.tilesArr.length) {
+                    this.randomizeTileValues(Playfield.randomTileColor_EASY);
+                }
+            } else {
+                LogE("Cannot move here!");
+            }
+        };
+
         if (!this.gameOver) {
             this.setHoveredTile();
             if (this.hoveredTile) {
                 if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
-                    console.log("Clicked hovered tile");
                     if (this.selectedTile) {
                         if (
                             this.hoveredTile.coords.row ===
@@ -614,36 +642,83 @@ export class PlayMap implements Updateable {
                                 this.selectedTile.col
                         ) {
                             this.deselectTile(this.hoveredTile);
+                            this.clearPath();
                         } else if (this.hoveredTile.color === TileColor.NONE) {
-                            if (this.canMoveTo(this.hoveredTile.coords)) {
-                                this.swapTiles(
-                                    this.hoveredTile.coords,
-                                    this.selectedTile
-                                );
-                                this.removeClusteredTiles();
-                                const endGame = this.checkEndGame();
-                                if (endGame) {
-                                    this.gameOver = true;
-                                    this.playfield.gameOver();
-                                } else if (
-                                    this.emptyTiles.length ===
-                                    this.tilesArr.length
-                                ) {
-                                    this.randomizeTileValues(
-                                        Playfield.randomTileColor_EASY
-                                    );
-                                }
-                            } else {
-                                LogE("Cannot move here!");
-                            }
+                            confirmMove(
+                                this.hoveredTile.coords,
+                                this.selectedTile
+                            );
                         } else {
                             this.deselectTile(this.getTile(this.selectedTile));
                             this.selectTile(this.hoveredTile);
-                            // this.hoverPath = null;
+                            this.clearPath();
                         }
                     } else {
                         if (this.hoveredTile.color !== TileColor.NONE)
                             this.selectTile(this.hoveredTile);
+                    }
+                } else {
+                    if (Game.input.hasTouchClicked()) {
+                        if (this.dragging && this.considerDrag > 0) {
+                            if (this.selectedTile) {
+                                // released drag
+                                const osm = GameOptions.instance;
+                                let autoPlace = false;
+                                if (osm) {
+                                    autoPlace = osm.autoPlaceAfterDrag;
+                                }
+                                if (autoPlace) {
+                                    confirmMove(
+                                        this.hoveredTile.coords,
+                                        this.selectedTile
+                                    );
+                                } else {
+                                    this.confirmPlacement =
+                                        this.hoveredTile.coords;
+                                }
+                            }
+                            this.considerDrag = -this.DEFAULT_DRAG_TIMEOUT;
+                        } else {
+                            // just clicked
+                            if (this.selectedTile) {
+                                if (this.hoveredTile.color !== TileColor.NONE) {
+                                    // clicked on color
+                                    this.deselectTile(
+                                        this.getTile(this.selectedTile)
+                                    );
+                                    this.selectTile(this.hoveredTile);
+                                    this.clearPath();
+                                } else {
+                                    // clicked on empty
+                                    if (
+                                        this.confirmPlacement &&
+                                        this.getTile(this.confirmPlacement) ===
+                                            this.hoveredTile
+                                    ) {
+                                        confirmMove(
+                                            this.hoveredTile.coords,
+                                            this.selectedTile
+                                        );
+                                    } else {
+                                        this.confirmPlacement =
+                                            this.hoveredTile.coords;
+                                    }
+                                }
+                            } else {
+                                if (this.hoveredTile.color !== TileColor.NONE) {
+                                    this.selectTile(this.hoveredTile);
+                                }
+                            }
+                        }
+                        this.dragging = false;
+                    } else if (Game.input.hasPressedTouch()) {
+                        // started dragging
+                        this.dragging = true;
+                        if (this.hoveredTile.color !== TileColor.NONE) {
+                            this.selectTile(this.hoveredTile);
+                        }
+                    } else if (this.dragging && Game.input.hasPointerMoved()) {
+                        this.considerDrag++;
                     }
                 }
             }
