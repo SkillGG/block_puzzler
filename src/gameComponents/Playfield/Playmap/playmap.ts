@@ -714,9 +714,10 @@ export class PlayMap implements Updateable {
                     } else if (Game.input.hasPressedTouch()) {
                         // started dragging
                         this.dragging = true;
-                        if (this.hoveredTile.color !== TileColor.NONE) {
-                            this.selectTile(this.hoveredTile);
-                        }
+                        if (!this.selectedTile)
+                            if (this.hoveredTile.color !== TileColor.NONE) {
+                                this.selectTile(this.hoveredTile);
+                            }
                     } else if (this.dragging && Game.input.hasPointerMoved()) {
                         this.considerDrag++;
                     }
