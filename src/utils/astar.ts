@@ -77,12 +77,12 @@ export type AstarPath = NodeCoords[];
 
 export class Astar {
     grid: Grid;
-    openList: Map<NodeKey, null>;
-    closeList: Map<NodeKey, null>;
+    openList: Set<NodeKey>;
+    closedList: Set<NodeKey>;
     constructor(grid: Grid) {
         this.grid = grid;
-        this.openList = new Map();
-        this.closeList = new Map();
+        this.openList = new Set();
+        this.closedList = new Set();
     }
 
     startCoords?: NodeCoords;
@@ -133,9 +133,8 @@ export class Astar {
                         neighbour[0],
                         neighbour[1]
                     );
-                    const fromOpen = this.openList.get(neighbourKey);
-                    if (fromOpen !== null) {
-                        this.openList.set(neighbourKey, null);
+                    if (!this.openList.has(neighbourKey)) {
+                        this.openList.add(neighbourKey);
                         neighbourNode.parent = coords;
                         const newG = this.g(neighbour, coords);
                         const newH = this.h(neighbour, endCoords);
@@ -155,7 +154,7 @@ export class Astar {
                 const nodeKey = keyFromArray(coords);
                 // console.log(this.openList);
                 this.openList.delete(nodeKey);
-                this.closeList.set(nodeKey, null);
+                this.closedList.add(nodeKey);
             }
         };
         searchFn([startX, startY]);
@@ -191,7 +190,7 @@ export class Astar {
         // console.log("Geting minF");
         let data: Node | null = null;
         // console.log([...this.openList]);
-        for (const [key] of [...this.openList]) {
+        for (const key of [...this.openList]) {
             const coords = keyToArray(key);
             const node = this.grid.getNode(coords[0], coords[1]);
             if (!data || node.f < data.f) {
@@ -218,14 +217,14 @@ export class Astar {
                 coords[1] + offset[1],
             ];
             const newKey: NodeKey = `${newXY[0]},${newXY[1]}`;
-            const isNotClose = this.closeList.get(newKey) !== null;
+            const isClosed = this.closedList.has(newKey);
 
             if (
                 newXY[0] > -1 &&
                 newXY[0] < this.grid.cols &&
                 newXY[1] > -1 &&
                 newXY[1] < this.grid.rows &&
-                isNotClose &&
+                !isClosed &&
                 this.grid.getNode(newXY[0], newXY[1]).isEmpty()
             ) {
                 result.push(newXY);

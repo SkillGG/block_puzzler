@@ -170,13 +170,6 @@ export class PlayMap implements Updateable {
             } else if (col >= this.tiles.length || row > this.tiles.length) {
                 LogE("Coords out of bounds", col, row);
             }
-            console.log(
-                this.tiles,
-                row,
-                col,
-                col < this.tiles.length,
-                (row || 0) < this.tiles[col].length
-            );
             throw "Error getting tile " + col + "/" + row;
         }
     }
@@ -290,6 +283,34 @@ export class PlayMap implements Updateable {
         return !!this.getAstarPath(t1, t2)?.length;
     }
 
+    areNeighboursEmpty(t: TileCoords) {
+        if (t.row > 0) {
+            const tx = this.getTile(t.col, t.row - 1);
+            if (tx && tx.color === TileColor.NONE) return true;
+        }
+        if (t.row < this.rowNum - 1) {
+            const tx = this.getTile(t.col, t.row + 1);
+            if (tx && tx.color === TileColor.NONE) return true;
+        }
+        if (t.col > 0) {
+            const tx = this.getTile(t.col - 1, t.row);
+            if (tx && tx.color === TileColor.NONE) return true;
+        }
+        if (t.col < this.colNum - 1) {
+            const tx = this.getTile(t.col + 1, t.row);
+            if (tx && tx.color === TileColor.NONE) return true;
+        }
+        return false;
+    }
+
+    areNeighbours(t: Tile, t2: Tile) {
+        return (
+            Math.abs(
+                t.coords.col - t2.coords.col + t.coords.row - t2.coords.row
+            ) === 1
+        );
+    }
+
     checkEndGame() {
         const emTiles = this.emptyTiles;
         const start = performance.now();
@@ -318,12 +339,16 @@ export class PlayMap implements Updateable {
         };
         const canDestroyTilesIfSwapped = () => {
             console.log("Checking swaps");
-            for (const coloredTile of this.tilesArr.filter(
-                (t) => t.color !== TileColor.NONE
+            for (const coloredTile of this.tilesArr.filter((t) =>
+                this.areNeighboursEmpty(t.coords)
             )) {
                 // check if single swap will make it possible
                 const origColor = coloredTile.color;
-                const emptyTiles = [...this.emptyTiles];
+                const emptyTiles = [...this.emptyTiles].filter(
+                    (t) =>
+                        this.areNeighboursEmpty(t.coords) ||
+                        this.areNeighbours(t, coloredTile)
+                );
                 for (const emptyTile of emptyTiles) {
                     if (
                         !this.canSwapTiles(emptyTile.coords, coloredTile.coords)
