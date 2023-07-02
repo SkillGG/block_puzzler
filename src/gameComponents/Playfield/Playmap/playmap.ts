@@ -606,10 +606,20 @@ export class PlayMap implements Updateable {
     }
 
     dragging = false;
-    readonly DEFAULT_DRAG_TIMEOUT = 3;
-    considerDrag: number = -this.DEFAULT_DRAG_TIMEOUT;
+    considerDrag(coords: TileCoords) {
+        if (this.dragStartCoords && coords) {
+            return !(
+                this.dragStartCoords.col === coords.col &&
+                this.dragStartCoords.row === coords.row
+            );
+        } else return this.dragging;
+    }
+
+    dragStartCoords: TileCoords | null = null;
 
     confirmPlacement: TileCoords | null = null;
+
+    selectedWithDrag = false;
 
     update(time: number) {
         // const start = performance.now();
@@ -659,7 +669,14 @@ export class PlayMap implements Updateable {
                     }
                 } else {
                     if (Game.input.hasTouchClicked()) {
-                        if (this.dragging && this.considerDrag > 0) {
+                        if (
+                            this.dragging &&
+                            this.considerDrag(this.hoveredTile.coords)
+                        ) {
+                            console.log(
+                                "conDrag",
+                                this.considerDrag(this.hoveredTile.coords)
+                            );
                             if (this.selectedTile) {
                                 // released drag
                                 const osm = GameOptions.instance;
@@ -717,8 +734,11 @@ export class PlayMap implements Updateable {
                                     }
                                 }
                             }
-                            this.considerDrag = -this.DEFAULT_DRAG_TIMEOUT;
                         } else {
+                            console.log(
+                                "noDrag",
+                                this.considerDrag(this.hoveredTile.coords)
+                            );
                             // just clicked
                             if (this.selectedTile) {
                                 if (this.hoveredTile.color !== TileColor.NONE) {
@@ -732,10 +752,12 @@ export class PlayMap implements Updateable {
                                         this.selectTile(this.hoveredTile);
                                         this.clearPath();
                                     } else {
-                                        this.deselectTile(
-                                            this.getTile(this.selectedTile)
-                                        );
+                                        if (!this.selectedWithDrag)
+                                            this.deselectTile(
+                                                this.getTile(this.selectedTile)
+                                            );
                                         this.clearPath();
+                                        this.selectedWithDrag = false;
                                     }
                                     // clicked on color
                                 } else {
@@ -765,15 +787,21 @@ export class PlayMap implements Updateable {
                             }
                         }
                         this.dragging = false;
+                        this.dragStartCoords = null;
                     } else if (Game.input.hasPressedTouch()) {
                         // started dragging
+                        console.log(
+                            "hpt",
+                            this.considerDrag(this.hoveredTile.coords)
+                        );
                         this.dragging = true;
-                        if (!this.selectedTile)
+                        this.dragStartCoords = this.hoveredTile.coords;
+                        if (!this.selectedTile) {
+                            this.selectedWithDrag = true;
                             if (this.hoveredTile.color !== TileColor.NONE) {
                                 this.selectTile(this.hoveredTile);
                             }
-                    } else if (this.dragging && Game.input.hasPointerMoved()) {
-                        this.considerDrag++;
+                        }
                     }
                 }
             }
