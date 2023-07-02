@@ -668,13 +668,53 @@ export class PlayMap implements Updateable {
                                     autoPlace = osm.autoPlaceAfterDrag;
                                 }
                                 if (autoPlace) {
-                                    confirmMove(
-                                        this.hoveredTile.coords,
-                                        this.selectedTile
-                                    );
+                                    if (
+                                        this.hoveredTile !==
+                                        this.getTile(this.selectedTile)
+                                    ) {
+                                        if (
+                                            this.hoveredTile.color ===
+                                            TileColor.NONE
+                                        )
+                                            confirmMove(
+                                                this.hoveredTile.coords,
+                                                this.selectedTile
+                                            );
+                                        else {
+                                            if (this.hoverPath) {
+                                                const lastPathTile =
+                                                    this.hoverPath[
+                                                        this.hoverPath.length -
+                                                            1
+                                                    ];
+                                                if (lastPathTile)
+                                                    this.confirmPlacement = {
+                                                        col: lastPathTile[0],
+                                                        row: lastPathTile[1],
+                                                    };
+                                            }
+                                        }
+                                    }
                                 } else {
-                                    this.confirmPlacement =
-                                        this.hoveredTile.coords;
+                                    if (
+                                        this.hoveredTile.color ===
+                                        TileColor.NONE
+                                    )
+                                        this.confirmPlacement =
+                                            this.hoveredTile.coords;
+                                    else {
+                                        if (this.hoverPath) {
+                                            const lastPathTile =
+                                                this.hoverPath[
+                                                    this.hoverPath.length - 1
+                                                ];
+                                            if (lastPathTile)
+                                                this.confirmPlacement = {
+                                                    col: lastPathTile[0],
+                                                    row: lastPathTile[1],
+                                                };
+                                        }
+                                    }
                                 }
                             }
                             this.considerDrag = -this.DEFAULT_DRAG_TIMEOUT;
@@ -682,12 +722,22 @@ export class PlayMap implements Updateable {
                             // just clicked
                             if (this.selectedTile) {
                                 if (this.hoveredTile.color !== TileColor.NONE) {
-                                    // clicked on color
-                                    this.deselectTile(
+                                    if (
+                                        this.hoveredTile !==
                                         this.getTile(this.selectedTile)
-                                    );
-                                    this.selectTile(this.hoveredTile);
-                                    this.clearPath();
+                                    ) {
+                                        this.deselectTile(
+                                            this.getTile(this.selectedTile)
+                                        );
+                                        this.selectTile(this.hoveredTile);
+                                        this.clearPath();
+                                    } else {
+                                        this.deselectTile(
+                                            this.getTile(this.selectedTile)
+                                        );
+                                        this.clearPath();
+                                    }
+                                    // clicked on color
                                 } else {
                                     // clicked on empty
                                     if (
@@ -695,10 +745,14 @@ export class PlayMap implements Updateable {
                                         this.getTile(this.confirmPlacement) ===
                                             this.hoveredTile
                                     ) {
-                                        confirmMove(
-                                            this.hoveredTile.coords,
-                                            this.selectedTile
-                                        );
+                                        if (
+                                            this.hoveredTile !==
+                                            this.getTile(this.selectedTile)
+                                        )
+                                            confirmMove(
+                                                this.hoveredTile.coords,
+                                                this.selectedTile
+                                            );
                                     } else {
                                         this.confirmPlacement =
                                             this.hoveredTile.coords;
