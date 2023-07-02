@@ -1,5 +1,5 @@
 import { Vector_2, randomInt } from "@utils/utils";
-import { Tile, TileColor, TileCoords } from "../Tile/tile";
+import { PathBlock, Tile, TileColor, TileCoords } from "../Tile/tile";
 import { Game } from "@/game";
 import { Updateable } from "@component/interfaces";
 import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
@@ -283,6 +283,48 @@ export class PlayMap implements Updateable {
         return !!this.getAstarPath(t1, t2)?.length;
     }
 
+    getNeighbours(coords: TileCoords, out: number): Tile[] {
+        const neighbours: Tile[] = [];
+        const offsets: [number, number][] = [
+            [0, 1],
+            [1, 0],
+            [-1, 0],
+            [0, -1],
+        ];
+        offsets.forEach((offset) => {
+            const neighRow = coords.row + offset[1];
+            const neighCol = coords.col + offset[0];
+            if (
+                neighCol < this.colNum - 1 &&
+                neighRow < this.rowNum - 1 &&
+                neighCol > 0 &&
+                neighRow > 0
+            )
+                neighbours.push(this.getTile(neighCol, neighRow));
+        });
+        const getUnique = (arr: Tile[]) => {
+            return arr.reduce<Tile[]>((p, n) => {
+                if (n.coords.col === coords.col && n.coords.row === coords.row)
+                    return p;
+                return p.find((t) => t.id === n.id) ? p : [...p, n];
+            }, []);
+        };
+        if (out === 0) {
+            return neighbours;
+        } else {
+            return getUnique([
+                ...neighbours,
+                ...neighbours
+                    .map((q) =>
+                        this.getNeighbours(q.coords, out - 1).filter(
+                            (x) => x !== q
+                        )
+                    )
+                    .flat(1),
+            ]);
+        }
+    }
+
     areNeighboursEmpty(t: TileCoords) {
         if (t.row > 0) {
             const tx = this.getTile(t.col, t.row - 1);
@@ -313,7 +355,6 @@ export class PlayMap implements Updateable {
 
     checkEndGame() {
         const emTiles = this.emptyTiles;
-        const start = performance.now();
         if (emTiles.length === 0) return true;
         const canDestroyIfTilesChange = (tilesToCheck: Tile[], depth = 0) => {
             const firstTile = tilesToCheck[0];
@@ -370,8 +411,7 @@ export class PlayMap implements Updateable {
         const x = !(
             canDestroyIfTilesChange(emTiles) || canDestroyTilesIfSwapped()
         );
-        const end = performance.now();
-        console.log("EndGameCheck:", end - start, "ms");
+
         return x;
     }
 
@@ -397,58 +437,220 @@ export class PlayMap implements Updateable {
         return astar.search(t1.col, t1.row, t2.col, t2.row);
     }
 
+    hoveredTile: Tile | null = null;
+
     canMoveTo(t: TileCoords) {
         if (!this.selectedTile) return false;
         return this.canSwapTiles(this.selectedTile, t);
     }
 
+    hoverPath: AstarPath | null = null;
+
+    drawHoverPath() {
+        const calculatePath = (): AstarPath | null => {
+            if (
+                this.selectedTile &&
+                (!this.hoveredTile || this.hoveredTile.color !== TileColor.NONE)
+            ) {
+                return this.hoverPath;
+            } else if (!this.selectedTile || !this.hoveredTile) {
+                return null;
+            } else {
+                // calculate hover path
+                return this.getAstarPath(
+                    this.selectedTile,
+                    this.hoveredTile.coords
+                );
+            }
+        };
+
+        const path = calculatePath();
+        if (path === this.hoverPath) return; // nothing changed
+
+        const drawPath = (path: AstarPath): AstarPath | null => {
+            if (path.length === 0) {
+                if (!this.hoveredTile) return path;
+                this.hoveredTile.pathBlockValue = PathBlock.ERR;
+                return [
+                    [this.hoveredTile.coords.col, this.hoveredTile.coords.row],
+                ];
+            }
+            const directionalPath = path.map<{
+                coords: TileCoords;
+                type: PathBlock;
+            }>((n, i, a) => {
+                const coords: TileCoords = { col: n[0], row: n[1] };
+                if (i === 0)
+                    return {
+                        coords,
+                        type: PathBlock.NONE,
+                    };
+                if (i === a.length - 1) return { coords, type: PathBlock.END };
+
+                const prevCoords = a[i - 1];
+                const nextCoords = a[i + 1];
+
+                if (prevCoords[0] === nextCoords[0])
+                    return { coords, type: PathBlock.VERTICAL };
+                if (prevCoords[1] === nextCoords[1])
+                    return { coords, type: PathBlock.HORIZONTAL };
+
+                const offsets: [number, number][] = [
+                    [prevCoords[0] - coords.col, prevCoords[1] - coords.row],
+                    [nextCoords[0] - coords.col, nextCoords[1] - coords.row],
+                ];
+
+                let from: "L" | "R" | "T" | "B" = "T";
+
+                console.log(offsets);
+
+                if (offsets[0][0] === 0) {
+                    // from TB
+                    if (offsets[0][1] === -1) from = "T";
+                    else from = "B";
+                } else {
+                    // from LR
+                    if (offsets[0][0] === -1) from = "L";
+                    else from = "R";
+                }
+
+                let to: typeof from = "T";
+
+                if (offsets[1][0] === 0) {
+                    if (offsets[1][1] === -1) to = "T";
+                    else to = "B";
+                } else {
+                    if (offsets[1][0] === -1) to = "L";
+                    else to = "R";
+                }
+
+                if (from + to === "LT" || to + from === "LT")
+                    return { coords, type: PathBlock.LT };
+                if (from + to === "LB" || to + from === "LB")
+                    return { coords, type: PathBlock.LB };
+                if (from + to === "RT" || to + from === "RT")
+                    return { coords, type: PathBlock.RT };
+                if (from + to === "RB" || to + from === "RB")
+                    return { coords, type: PathBlock.RB };
+                return { coords, type: PathBlock.ERR };
+            });
+            directionalPath.forEach((block) => {
+                const tile = this.getTile(block.coords.col, block.coords.row);
+                if (tile) tile.pathBlockValue = block.type;
+            });
+            return path;
+        };
+
+        const clearPath = () => {
+            if (!this.hoverPath) return;
+            this.hoverPath.forEach((coords) => {
+                const tile = this.getTile(coords[0], coords[1]);
+                if (tile) tile.pathBlockValue = PathBlock.NONE;
+            });
+        };
+
+        if (path) {
+            clearPath();
+            this.hoverPath = drawPath(path);
+        } else {
+            clearPath();
+            this.hoverPath = path;
+        }
+    }
+
+    setHoveredTile() {
+        const changeHovered = (t: Tile | null) => {
+            this.hoveredTile = t;
+
+            this.drawHoverPath();
+        };
+
+        if (this.hoveredTile) {
+            if (Game.input.isMouseIn(this.hoveredTile.bounds)) return;
+
+            const neighbours = this.getNeighbours(this.hoveredTile.coords, 1);
+
+            for (let i = 0; i < neighbours.length; i++) {
+                const neighbour = neighbours[i];
+                if (Game.input.isMouseIn(neighbour.bounds)) {
+                    changeHovered(neighbour);
+                    return;
+                }
+            }
+
+            const notNear = this.tilesArr.filter(
+                (t) => !neighbours.find((q) => q === t)
+            );
+            for (let i = 0; i < notNear.length; i++) {
+                if (Game.input.isMouseIn(notNear[i].bounds)) {
+                    changeHovered(notNear[i]);
+                    return;
+                }
+            }
+        } else {
+            const allTiles = this.tilesArr;
+            for (let i = 0; i < allTiles.length; i++) {
+                if (Game.input.isMouseIn(allTiles[i].bounds)) {
+                    changeHovered(allTiles[i]);
+                    return;
+                }
+            }
+        }
+        if (this.hoveredTile) changeHovered(null);
+    }
+
     update(time: number) {
-        if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
-            if (!this.gameOver) {
-                let clickFinished = false;
-                this.eachTile((t) => {
-                    if (clickFinished) return;
-                    if (Game.input.isMouseIn(t.bounds)) {
-                        // clicked a tile
-                        if (this.selectedTile) {
-                            if (
-                                t.coords.row === this.selectedTile.row &&
-                                t.coords.col === this.selectedTile.col
-                            ) {
-                                this.deselectTile(t);
-                            } else if (t.color === TileColor.NONE) {
-                                if (this.canMoveTo(t.coords)) {
-                                    this.swapTiles(t.coords, this.selectedTile);
-                                    this.removeClusteredTiles();
-                                    const endGame = this.checkEndGame();
-                                    if (endGame) {
-                                        this.gameOver = true;
-                                        this.playfield.gameOver();
-                                    } else if (
-                                        this.emptyTiles.length ===
-                                        this.tilesArr.length
-                                    ) {
-                                        this.randomizeTileValues(
-                                            Playfield.randomTileColor_EASY
-                                        );
-                                    }
-                                } else {
-                                    LogE("Cannot move here!");
+        // const start = performance.now();
+        if (!this.gameOver) {
+            this.setHoveredTile();
+            if (this.hoveredTile) {
+                if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
+                    console.log("Clicked hovered tile");
+                    if (this.selectedTile) {
+                        if (
+                            this.hoveredTile.coords.row ===
+                                this.selectedTile.row &&
+                            this.hoveredTile.coords.col ===
+                                this.selectedTile.col
+                        ) {
+                            this.deselectTile(this.hoveredTile);
+                        } else if (this.hoveredTile.color === TileColor.NONE) {
+                            if (this.canMoveTo(this.hoveredTile.coords)) {
+                                this.swapTiles(
+                                    this.hoveredTile.coords,
+                                    this.selectedTile
+                                );
+                                this.removeClusteredTiles();
+                                const endGame = this.checkEndGame();
+                                if (endGame) {
+                                    this.gameOver = true;
+                                    this.playfield.gameOver();
+                                } else if (
+                                    this.emptyTiles.length ===
+                                    this.tilesArr.length
+                                ) {
+                                    this.randomizeTileValues(
+                                        Playfield.randomTileColor_EASY
+                                    );
                                 }
                             } else {
-                                this.deselectTile(
-                                    this.getTile(this.selectedTile)
-                                );
-                                this.selectTile(t);
+                                LogE("Cannot move here!");
                             }
                         } else {
-                            if (t.color !== TileColor.NONE) this.selectTile(t);
+                            this.deselectTile(this.getTile(this.selectedTile));
+                            this.selectTile(this.hoveredTile);
+                            // this.hoverPath = null;
                         }
-                        clickFinished = true;
+                    } else {
+                        if (this.hoveredTile.color !== TileColor.NONE)
+                            this.selectTile(this.hoveredTile);
                     }
-                });
+                }
             }
         }
         this.clogDelta += time;
+        // const end = performance.now();
+        // if (this.clogDelta % 1000 < 20)
+        //     console.log("updateTime:", end - start, "ms");
     }
 }
