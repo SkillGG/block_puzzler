@@ -1,12 +1,12 @@
 import { Game } from "@/game";
-import { Vector2 } from "@utils/utils";
-import { BoundedGameObject } from "@component/GameObject";
+import { Vector2 } from "@utils";
+import { BoundedGameObject } from "@components/GameObject";
 import {
     LEFT_MOUSE_BUTTON,
     RIGHT_MOUSE_BUTTON,
-} from "@component/KeyboardManager";
-import { Label, LabelWithBorderStyle } from "@primitive/Label/Label";
-import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
+} from "@components/KeyboardManager";
+import { Label, LabelWithBorderStyle } from "@primitives/Label/Label";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
 export interface ButtonMouseEvent {
     mousePos: Vector2;

@@ -1,9 +1,9 @@
 import { DevConsole } from "@/console";
-import { InputManager } from "@component/KeyboardManager";
-import { ObjectManager } from "@component/ObjectManager";
-import { Renderable, Updateable } from "@component/utils";
+import { InputManager } from "@components/KeyboardManager";
+import { ObjectManager } from "@components/ObjectManager";
+import { Renderable, Updateable } from "@utils";
 import { GameOptions } from "@/options";
-import { Vector2 } from "@utils/utils";
+import { Vector2 } from "@utils";
 import { GameState } from "@/main";
 
 export const normalizeVector2RelativeToElement = (

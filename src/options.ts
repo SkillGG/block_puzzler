@@ -1,12 +1,12 @@
-import { StateManager } from "@component/StateManager";
-import { ObjectManager } from "@component/ObjectManager";
+import { StateManager } from "@components/StateManager";
+import { ObjectManager } from "@components/ObjectManager";
 import { GameState } from "./main";
-import { Label } from "@component/Primitives/Label/Label";
-import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
+import { Label } from "@components/Primitives/Label/Label";
+import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Game } from "./game";
-import { $ } from "@utils/utils";
-import { Playfield } from "@component/Playfield/playfield";
-import { Button } from "@component/Primitives/Button/button";
+import { $ } from "@utils";
+import { Playfield } from "@components/Playfield/playfield";
+import { Button } from "@components/Primitives/Button/Button";
 
 declare global {
     interface Window {
@@ -187,7 +187,6 @@ export class GameOptions<T extends string> {
     }
 
     addPoints(pts: number) {
-        console.log("Adding points!");
         this.points += pts;
     }
     createManager(manager: ObjectManager<T>, state: T) {

@@ -1,6 +1,6 @@
-import { BoundedGameObject } from "@component/GameObject";
-import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
-import { Vector2, Vector_2 } from "@utils/utils";
+import { BoundedGameObject } from "@components/GameObject";
+import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
+import { Vector2, Vector_2 } from "@utils";
 
 export enum TileColor {
     NONE = "transparent",
@@ -36,6 +36,7 @@ export class Tile extends BoundedGameObject {
     color: TileColor = TileColor.NONE;
 
     pathBlockValue: PathBlock = PathBlock.NONE;
+    originalAnchor: Vector_2;
 
     get tileNumberStr() {
         return /(\d+)/.exec(this.id)?.[1] || "tile";
@@ -50,6 +51,7 @@ export class Tile extends BoundedGameObject {
         const [row, col] = coords;
         super(id, new RectangleBounds(0, 0, width, height));
         this.anchor = gridPosition;
+        this.originalAnchor = { ...gridPosition };
         this.size = [width, height];
         this.coords = { col, row };
         this.applyPositionChange();

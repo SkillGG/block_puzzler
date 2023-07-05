@@ -1,7 +1,7 @@
-import { Vector2 } from "@utils/utils";
-import { GameObject } from "@component/GameObject";
-import { Label } from "@primitive/Label/Label";
-import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
+import { Vector2 } from "@utils";
+import { GameObject } from "@components/GameObject";
+import { Label } from "@primitives/Label/Label";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
 export class FpsCounter extends GameObject {
     label: Label;

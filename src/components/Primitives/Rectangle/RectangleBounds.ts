@@ -1,13 +1,18 @@
 import { Game } from "@/game";
-import { Vector2, Vector_2 } from "@utils/utils";
+import { Vector2, Vector_2, Vector4 } from "@utils";
 
 export class RectangleBounds {
     constructor(x: Vector2, y: Vector2);
     constructor(x: number, y: number, w: number, h: number);
     constructor(x: Vector_2, y: Vector2);
+    /**
+     * copy constructor
+     * @param r RectangleBounds to copy
+     */
+    constructor(r: RectangleBounds);
     constructor(
-        x: Vector2 | Vector_2 | number,
-        y: Vector2 | number,
+        x: Vector2 | Vector_2 | number | RectangleBounds,
+        y?: Vector2 | number,
         w?: number,
         h?: number
     ) {
@@ -39,7 +44,16 @@ export class RectangleBounds {
             this.pos = { x, y };
             this.width = w;
             this.height = h;
-        } else throw "Incorrect constructor!";
+        } else if (x instanceof RectangleBounds) {
+            this.pos = {
+                x: x.x,
+                y: x.y,
+            };
+            this.width = x.width;
+            this.height = x.height;
+        } else {
+            throw "Incorrect constructor!";
+        }
         this.normalize();
     }
     pos: Vector_2;
@@ -48,6 +62,9 @@ export class RectangleBounds {
     }
     get y() {
         return this.pos.y;
+    }
+    get asVec4() {
+        return [this.pos.x, this.pos.y, this.width, this.height] as Vector4;
     }
     width: number;
     height: number;
@@ -77,6 +94,23 @@ export class RectangleBounds {
             this.pos.y = y;
         } else if (typeof posOrX !== "number") this.pos = posOrX;
         else
+            throw `Incorrect parameters in setPosition! ${typeof posOrX},${typeof y}`;
+    }
+    moveBy(pos: Vector_2): void;
+    moveBy(pos: Vector2): void;
+    moveBy(x: number, y: number): void;
+    moveBy(posOrX: Vector2 | Vector_2 | number, y?: number): void {
+        if (typeof posOrX === "number" && typeof y === "number") {
+            this.pos.x += posOrX;
+            this.pos.y += y;
+        } else if (Array.isArray(posOrX)) {
+            const [x, y] = posOrX;
+            this.pos.x += x;
+            this.pos.y += y;
+        } else if (typeof posOrX !== "number") {
+            this.pos.x += posOrX.x;
+            this.pos.y += posOrX.y;
+        } else
             throw `Incorrect parameters in setPosition! ${typeof posOrX},${typeof y}`;
     }
     intersects(r: RectangleBounds) {

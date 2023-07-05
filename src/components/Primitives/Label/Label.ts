@@ -1,6 +1,6 @@
-import { BoundedGameObject } from "@component/GameObject";
-import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
-import { Rectangle, RectangleStyle } from "@primitive/Rectangle/Rectangle";
+import { BoundedGameObject } from "@components/GameObject";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { Rectangle, RectangleStyle } from "@primitives/Rectangle/Rectangle";
 
 type AlignText = "center" | "right" | "left";
 type JustifyText = "center" | "top" | "bottom";

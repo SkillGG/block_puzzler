@@ -1,11 +1,13 @@
 import "./style.css";
 import { Game } from "./game";
 import { DevConsole } from "./console";
-import { getHTMLBoxes } from "@utils/utils";
+import { getHTMLBoxes } from "@utils";
 import { GameOptions } from "./options";
-import { GameMenu } from "@component/Menu/menu";
-import { FpsCounter } from "./gameComponents/FpsCounter/fpsCounter";
-import { Playfield } from "@component/Playfield/playfield";
+import { GameMenu } from "@components/Menu/menu";
+import { FpsCounter } from "@components/FpsCounter/fpsCounter";
+import { Playfield } from "@components/Playfield/playfield";
+import { SpriteLoader } from "@primitives/Sprite/SpriteLoader";
+import { BreakingAnimation } from "@components/Animation/Break/break";
 
 export enum GameState {
     MENU = "MENU",
@@ -77,4 +79,11 @@ async function loop() {
 game.run();
 
 previous = performance.now();
-loop();
+
+SpriteLoader.addAnimation("breaking", async () =>
+    BreakingAnimation.sprite.loadBreakingSprites()
+);
+
+SpriteLoader.loadAllSprites().then(() => {
+    loop();
+});

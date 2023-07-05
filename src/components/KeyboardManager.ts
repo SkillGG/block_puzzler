@@ -1,7 +1,6 @@
 import { Game } from "@/game";
-import { Vector2, Vector_2 } from "@utils/utils";
-import { RectangleBounds } from "./Primitives/Rectangle/RectangleBounds";
-import { Updateable } from "./utils";
+import { Vector2, Vector_2, Updateable } from "@utils";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
 export const LEFT_MOUSE_BUTTON = 0;
 export const MIDDLE_MOUSE_BUTTON = 1;

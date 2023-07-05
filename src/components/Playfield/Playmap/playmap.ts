@@ -1,11 +1,15 @@
-import { Vector_2, randomInt } from "@utils/utils";
-import { PathBlock, Tile, TileColor, TileCoords } from "../Tile/tile";
+import { Updateable, Vector_2, randomInt } from "@utils";
+import {
+    PathBlock,
+    Tile,
+    TileColor,
+    TileCoords,
+} from "@components/Playfield/Tile/tile";
 import { Game } from "@/game";
-import { Updateable } from "@component/utils";
-import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
+import { LEFT_MOUSE_BUTTON } from "@components/KeyboardManager";
 import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
-import { Astar, AstarPath, Grid } from "@utils/astar";
+import { Astar, AstarPath, Grid } from "@astar";
 import { GameOptions } from "@/options";
 
 export class PlayMap implements Updateable {
@@ -253,13 +257,19 @@ export class PlayMap implements Updateable {
                 if (tile.color === TileColor.NONE) continue;
                 if (tile.coords.row >= this.rowNum - 1) continue;
                 if (tile.coords.col >= this.colNum - 1) continue;
-                if (clusters.find((c) => c.find((x) => x === tile))) continue;
+                if (!!clusters.find((c) => c.find((x) => x === tile))) continue;
                 const leftTile = row[j + 1];
                 if (leftTile.color !== tile.color) continue;
+                if (!!clusters.find((c) => c.find((x) => x === leftTile)))
+                    continue;
                 const bottomTile = tiles[i + 1][j];
                 if (bottomTile.color !== tile.color) continue;
+                if (!!clusters.find((c) => c.find((x) => x === bottomTile)))
+                    continue;
                 const diagonalTile = tiles[i + 1][j + 1];
                 if (diagonalTile.color !== tile.color) continue;
+                if (!!clusters.find((c) => c.find((x) => x === diagonalTile)))
+                    continue;
                 // remove colors
                 clusters.push([tile, leftTile, bottomTile, diagonalTile]);
             }
@@ -419,8 +429,8 @@ export class PlayMap implements Updateable {
     removeClusteredTiles() {
         const clusters = this.getClusteredTiles();
         if (clusters.length <= 0) return;
-        console.log("Removing cluster!", clusters);
         clusters.forEach((c) => {
+            this.playfield.playDestroyAnimation(c);
             c.forEach((t) => (t.color = TileColor.NONE));
             this.playfield.addPoints(4);
         });

@@ -1,11 +1,11 @@
 import { Game } from "@/game";
 import { GameState } from "@/main";
-import { ObjectManager } from "@component/ObjectManager";
-import { Button, ButtonClickEvent } from "@primitive/Button/button";
-import { Label, LabelWithBorderStyle } from "@primitive/Label/Label";
-import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
-import { StateManager } from "@component/StateManager";
-import { Playfield } from "@component/Playfield/playfield";
+import { ObjectManager } from "@components/ObjectManager";
+import { Button, ButtonClickEvent } from "@components/Primitives/Button/Button";
+import { Label, LabelWithBorderStyle } from "@primitives/Label/Label";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { StateManager } from "@components/StateManager";
+import { Playfield } from "@components/Playfield/playfield";
 import { LogI } from "@/console";
 
 export class GameMenu extends StateManager<GameState> {

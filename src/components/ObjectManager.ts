@@ -1,7 +1,7 @@
 import { Game } from "@/game";
-import { GameObject } from "@component/GameObject";
-import { Renderable, Updateable } from "@component/utils";
-import { StateManager } from "@component/StateManager";
+import { GameObject } from "@components/GameObject";
+import { Renderable, Updateable } from "@utils";
+import { StateManager } from "@components/StateManager";
 
 export class ObjectManager<AvailableStates extends string>
     implements Updateable, Renderable

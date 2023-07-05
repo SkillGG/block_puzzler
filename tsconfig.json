@@ -18,10 +18,13 @@
         "jsxFragmentFactory": "Fragment",
         "baseUrl": ".",
         "paths": {
-            "@component/*": ["./src/gameComponents/*"],
-            "@utils/*": ["./src/utils/*"],
-            "@primitive/*": ["./src/gameComponents/Primitives/*"],
-            "@/*": ["./src/*"]
+            "@primitives/*": ["./src/components/Primitives/*"],
+            "@components/*": ["./src/components/*"],
+            "@utils": ["./src/utils/utils"],
+            "@astar": ["./src/utils/astar"],
+            "@/*": ["./src/*"],
+            "@animation": ["./src/components/Animation/animation"],
+            "@animations/*": ["./src/components/Animation/*"]
         }
     },
     "include": ["./src"]

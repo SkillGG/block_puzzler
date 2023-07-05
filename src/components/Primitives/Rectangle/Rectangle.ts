@@ -1,4 +1,4 @@
-import { BoundedGameObject } from "@component/GameObject";
+import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "./RectangleBounds";
 
 export interface RectangleStyle {

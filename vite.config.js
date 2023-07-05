@@ -9,11 +9,17 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),
-            "@component": path.resolve(__dirname, "./src/gameComponents"),
-            "@utils": path.resolve(__dirname, "./src/utils"),
-            "@primitive": path.resolve(
+            "@primitives": path.resolve(
                 __dirname,
-                "./src/gameComponents/Primitives"
+                "./src/components/Primitives"
+            ),
+            "@components": path.resolve(__dirname, "./src/components"),
+            "@astar": path.resolve(__dirname, "./src/utils/astar"),
+            "@utils": path.resolve(__dirname, "./src/utils/utils"),
+
+            "@animations/*": path.resolve(
+                __dirname,
+                "./src/components/Animation/*"
             ),
         },
     },

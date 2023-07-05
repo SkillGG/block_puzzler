@@ -1,6 +1,6 @@
-import { GameObject } from "@component/GameObject";
-import { ObjectManager } from "@component/ObjectManager";
-import { Updateable } from "./utils";
+import { GameObject } from "@components/GameObject";
+import { ObjectManager } from "@components/ObjectManager";
+import { Updateable } from "@utils";
 
 export abstract class StateManager<T extends string> implements Updateable {
     id: string;

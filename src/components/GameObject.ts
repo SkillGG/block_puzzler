@@ -1,6 +1,6 @@
 import { Game } from "@/game";
-import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
-import { Renderable, Updateable } from "./utils";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { Renderable, Updateable } from "@utils";
 
 export abstract class GameObject implements Updateable, Renderable {
     id: string;

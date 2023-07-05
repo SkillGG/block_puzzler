@@ -1,13 +1,13 @@
 import { Game } from "@/game";
 import { GameState } from "@/main";
-import { StateManager } from "@component/StateManager";
+import { StateManager } from "@components/StateManager";
 import { Playfield } from "./playfield";
-import { Rectangle } from "@component/Primitives/Rectangle/Rectangle";
-import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
-import { Label, LabelWithBorderStyle } from "@component/Primitives/Label/Label";
-import { GameObject } from "@component/GameObject";
+import { Rectangle } from "@primitives/Rectangle/Rectangle";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { Label, LabelWithBorderStyle } from "@primitives/Label/Label";
+import { GameObject } from "@components/GameObject";
 import { GameOptions } from "@/options";
-import { Button } from "@component/Primitives/Button/button";
+import { Button } from "@components/Primitives/Button/Button";
 
 export class GameOverScreen extends StateManager<GameState> {
     static DefaultID = "gameOver";

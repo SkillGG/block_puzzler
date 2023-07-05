@@ -1,11 +1,12 @@
 import { GameState } from "@/main";
-import { ObjectManager } from "@component/ObjectManager";
-import { StateManager } from "@component/StateManager";
-import { PlayMap } from "@component/Playfield/Playmap/playmap";
+import { ObjectManager } from "@components/ObjectManager";
+import { StateManager } from "@components/StateManager";
+import { PlayMap } from "@components/Playfield/Playmap/playmap";
 import { Tile, TileColor } from "./Tile/tile";
-import { getRandomWeightedNumber, randomInt } from "@utils/utils";
+import { getRandomWeightedNumber, randomInt } from "@utils";
 import { GameOptions } from "@/options";
 import { GameOverScreen } from "./gameOverScreen";
+import { BreakingAnimation } from "@components/Animation/Break/break";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
@@ -54,6 +55,28 @@ export class Playfield extends StateManager<GameState> {
             })
         );
     };
+
+    animations: number[] = [];
+
+    playDestroyAnimation(c: Tile[]) {
+        const getFreeAnimationID = () => {
+            const nA = [...this.animations];
+            nA.sort((a, b) => a - b);
+            return (nA[nA.length - 1] || 0) + 1;
+        };
+        const animID = getFreeAnimationID();
+        const anim = new BreakingAnimation.animation(
+            "crash" + animID,
+            () => {
+                this.manager.removeStateManager("crash" + animID);
+                this.animations = this.animations.filter((a) => a !== animID);
+            },
+            c[0]
+        );
+        this.animations.push(animID);
+        this.manager.addStateManager(anim);
+        anim.registerObjects();
+    }
 
     startGame(ms: number) {
         this.init(ms);
