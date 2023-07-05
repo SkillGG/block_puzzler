@@ -1,6 +1,6 @@
 import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
-import { Vector2, Vector_2 } from "@utils";
+import { Vector2, Vector_2, asyncNonce } from "@utils";
 
 export enum TileColor {
     NONE = "transparent",
@@ -189,5 +189,5 @@ export class Tile extends BoundedGameObject {
         if (!c) return;
         this.color = c;
     }
-    async update() {}
+    update = asyncNonce;
 }

@@ -214,7 +214,6 @@ export class PlayMap implements Updateable {
             this.pathToTiles(),
             () => {
                 tile2.color = TileColor.NONE;
-                console.log(tile1);
             },
             () => {
                 tile2.color = startColor;
@@ -241,6 +240,8 @@ export class PlayMap implements Updateable {
         tile2.unmarkSelected();
 
         this.selectedTile = null;
+
+        // this.drawHoverPath();
 
         this.lock = true;
     }
@@ -288,7 +289,6 @@ export class PlayMap implements Updateable {
             const row = tiles[i];
             for (let j = 0; j < row.length; j++) {
                 const tile = row[j];
-                // console.log(tile.color === TileColor.NONE);
                 if (tile.color === TileColor.NONE) continue;
                 if (tile.coords.row >= this.rowNum - 1) continue;
                 if (tile.coords.col >= this.colNum - 1) continue;
@@ -309,7 +309,6 @@ export class PlayMap implements Updateable {
                 clusters.push([tile, leftTile, bottomTile, diagonalTile]);
             }
         }
-        console.log("Got clusters", clusters);
         return clusters;
     }
 
@@ -426,7 +425,6 @@ export class PlayMap implements Updateable {
             return false;
         };
         const canDestroyTilesIfSwapped = () => {
-            console.log("Checking swaps");
             for (const coloredTile of this.tilesArr.filter((t) =>
                 this.areNeighboursEmpty(t.coords)
             )) {
@@ -693,10 +691,13 @@ export class PlayMap implements Updateable {
                             this.deselectTile(this.hoveredTile);
                             this.clearPath();
                         } else if (this.hoveredTile.color === TileColor.NONE) {
+                            this.confirmPlacement = null;
                             confirmMove(
                                 this.hoveredTile.coords,
                                 this.selectedTile
                             );
+                            this.deselectTile(this.hoveredTile);
+                            this.clearPath();
                         } else {
                             this.deselectTile(this.getTile(this.selectedTile));
                             this.selectTile(this.hoveredTile);
@@ -712,10 +713,6 @@ export class PlayMap implements Updateable {
                             this.dragging &&
                             this.considerDrag(this.hoveredTile.coords)
                         ) {
-                            console.log(
-                                "conDrag",
-                                this.considerDrag(this.hoveredTile.coords)
-                            );
                             if (this.selectedTile) {
                                 // released drag
                                 const osm = GameOptions.instance;
@@ -774,23 +771,45 @@ export class PlayMap implements Updateable {
                                 }
                             }
                         } else {
-                            console.log(
-                                "noDrag",
-                                this.considerDrag(this.hoveredTile.coords)
-                            );
                             // just clicked
                             if (this.selectedTile) {
                                 if (this.hoveredTile.color !== TileColor.NONE) {
+                                    // clicked on color
                                     if (
                                         this.hoveredTile !==
                                         this.getTile(this.selectedTile)
                                     ) {
-                                        this.deselectTile(
-                                            this.getTile(this.selectedTile)
-                                        );
-                                        this.selectTile(this.hoveredTile);
+                                        console.log(this.selectedWithDrag);
+                                        let done = false;
+                                        const cPC = this.confirmPlacement;
+                                        if (cPC && this.selectedWithDrag) {
+                                            if (
+                                                this.getNeighbours(
+                                                    this.hoveredTile.coords,
+                                                    1
+                                                ).find(
+                                                    (x) =>
+                                                        x.coords.col ===
+                                                            cPC.col &&
+                                                        x.coords.row === cPC.row
+                                                )
+                                            ) {
+                                                done = true;
+                                                confirmMove(
+                                                    cPC,
+                                                    this.selectedTile
+                                                );
+                                            }
+                                        }
+                                        if (!done) {
+                                            this.deselectTile(
+                                                this.getTile(this.selectedTile)
+                                            );
+                                            this.selectTile(this.hoveredTile);
+                                        }
                                         this.clearPath();
                                     } else {
+                                        // clicked selected block
                                         if (!this.selectedWithDrag)
                                             this.deselectTile(
                                                 this.getTile(this.selectedTile)
@@ -798,7 +817,6 @@ export class PlayMap implements Updateable {
                                         this.clearPath();
                                         this.selectedWithDrag = false;
                                     }
-                                    // clicked on color
                                 } else {
                                     // clicked on empty
                                     if (
@@ -829,10 +847,6 @@ export class PlayMap implements Updateable {
                         this.dragStartCoords = null;
                     } else if (Game.input.hasPressedTouch()) {
                         // started dragging
-                        console.log(
-                            "hpt",
-                            this.considerDrag(this.hoveredTile.coords)
-                        );
                         this.dragging = true;
                         this.dragStartCoords = this.hoveredTile.coords;
                         if (!this.selectedTile) {

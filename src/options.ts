@@ -71,11 +71,16 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
     refreshUI() {
         this.pointsLabel.text = `Points: ${this.parent.points}`;
         this.movesLabel.text = `Moves: ${this.parent.moves}`;
-        if (Game.input.pointerType === "touch")
+        if (Game.input.pointerType === "touch") {
             this.dragLabel.label.text = this.parent.autoPlaceAfterDrag
                 ? "DragConfirm: false"
                 : "DragConfirm: true";
-        else this.dragLabel.label.text = "";
+            this.dragLabel.label.style.textColor = "black";
+            this.dragLabel.label.border.style.strokeColor = "black";
+        } else {
+            this.dragLabel.label.style.textColor = "transparent";
+            this.dragLabel.label.border.style.strokeColor = "transparent";
+        }
     }
     removeObjects(): void {
         if (!this.areRegistered) return;
@@ -106,7 +111,7 @@ export class GameOptions<T extends string> {
     stateManager: OptionsStateManager<T> | null = null;
     points: number = 0;
 
-    autoPlaceAfterDrag: boolean = false;
+    autoPlaceAfterDrag: boolean = true;
 
     get moves() {
         const osm = Game.instance?.manager.getStateManager<Playfield>(

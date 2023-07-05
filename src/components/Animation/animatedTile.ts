@@ -1,7 +1,7 @@
 import { Tile } from "@components/Playfield/Tile/tile";
 import { CanAnimate } from "./animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
-import { Vector2, asyncNonce } from "@utils";
+import { Vector2 } from "@utils";
 
 export class AnimatableTile extends Tile implements CanAnimate {
     constructor(animId: string, t: Tile) {
@@ -54,5 +54,4 @@ export class AnimatableTile extends Tile implements CanAnimate {
         ctx.stroke();
         this.renderPath(ctx);
     }
-    async update() {}
 }

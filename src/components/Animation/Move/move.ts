@@ -59,7 +59,6 @@ export namespace MovingAnimation {
             start();
         }
         async render(ctx: CanvasRenderingContext2D) {
-            // console.log("rendering animation", this.id);
             for (const t of this.tiles) {
                 t.render(ctx);
             }
@@ -68,7 +67,6 @@ export namespace MovingAnimation {
         calcPathLines(tiles: Tile[]) {
             const lines: Vector2[][] = [];
             tiles.forEach((t, i) => {
-                console.log(t.pathBlockValue);
                 const pos = t.bounds.getPosition();
                 if (i === 0) lines.push([pos]);
                 else if (
@@ -94,7 +92,6 @@ export namespace MovingAnimation {
                     lines[lines.length - 1].push(pos);
                 }
             });
-            console.log("Got lines", lines);
             this.pathLines = lines.map((v) => {
                 return new PathLine(v[0], v[1]);
             });
@@ -102,13 +99,10 @@ export namespace MovingAnimation {
 
         moveToDistance(n: number, t: AnimatableTile) {
             let distance = 0;
-            console.log(n);
             for (const line of this.pathLines) {
                 if (n < distance + line.distance) {
                     // found;
-                    console.log(line.start, line.end, distance, n);
                     const pos = line.getDistancedPos(distance - n);
-                    console.log("Got pos", pos);
                     t.offsetXY = [pos[0] - t.bounds.x, pos[1] - t.bounds.y];
                     break;
                 }
@@ -128,7 +122,6 @@ export namespace MovingAnimation {
                     (x === start[0] && y === start[1])
                 );
             });
-            console.log(lineIndex);
             if (lineIndex < 0) return 0;
 
             const linesToGo = this.pathLines.filter((_, i) => i >= lineIndex);
@@ -155,9 +148,7 @@ export namespace MovingAnimation {
             this.frame++;
             this.blendT = ((this.frame / this.totalDistance) * 60) / 3;
 
-            // console.log(this.traveled);
             const newT = lerp(0, this.totalDistance, this.blendT);
-            // console.log(newT, newT - this.traveled, this.totalDistance, blend);
 
             this.traveled = newT;
 
