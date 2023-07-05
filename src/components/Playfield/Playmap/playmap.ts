@@ -190,11 +190,50 @@ export class PlayMap implements Updateable {
 
     selectedTile: TileCoords | null = null;
 
+    pathToTiles(): Tile[] {
+        if (!this.hoverPath) return [];
+        const ts = [];
+        for (const cords of this.hoverPath) {
+            const t = this.getTile(cords[0], cords[1]);
+            if (t) ts.push(t);
+        }
+        return ts;
+    }
+
+    lock = false;
+
     swapTiles(t1: TileCoords, t2: TileCoords) {
         const tile1 = this.getTile(t1);
         const tile2 = this.getTile(t2);
         if (!tile1) throw `Tile not found ${t1}`;
         if (!tile2) throw `Tile not found ${t2}`;
+
+        const startColor = tile2.color;
+
+        this.playfield.playMovingAnimation(
+            this.pathToTiles(),
+            () => {
+                tile2.color = TileColor.NONE;
+                console.log(tile1);
+            },
+            () => {
+                tile2.color = startColor;
+                this.getRandomTileWhich(
+                    (t) => t.color === TileColor.NONE
+                )?.setColor(Playfield.randomTileColor());
+                this.randomizeTileValues(Playfield.randomTileColor_EASY);
+                this.numberOfMoves++;
+                this.lock = false;
+                this.removeClusteredTiles();
+                const endGame = this.checkEndGame();
+                if (endGame) {
+                    this.gameOver = true;
+                    this.playfield.gameOver();
+                } else if (this.emptyTiles.length === this.tilesArr.length) {
+                    this.randomizeTileValues(Playfield.randomTileColor_EASY);
+                }
+            }
+        );
 
         tile1.moveToTile(t2);
         tile2.moveToTile(t1);
@@ -203,11 +242,7 @@ export class PlayMap implements Updateable {
 
         this.selectedTile = null;
 
-        this.getRandomTileWhich((t) => t.color === TileColor.NONE)?.setColor(
-            Playfield.randomTileColor()
-        );
-        this.randomizeTileValues(Playfield.randomTileColor_EASY);
-        this.numberOfMoves++;
+        this.lock = true;
     }
 
     selectTile(t: Tile) {
@@ -274,6 +309,7 @@ export class PlayMap implements Updateable {
                 clusters.push([tile, leftTile, bottomTile, diagonalTile]);
             }
         }
+        console.log("Got clusters", clusters);
         return clusters;
     }
 
@@ -637,14 +673,6 @@ export class PlayMap implements Updateable {
         const confirmMove = (tile1: TileCoords, tile2: TileCoords) => {
             if (this.canMoveTo(tile1)) {
                 this.swapTiles(tile1, tile2);
-                this.removeClusteredTiles();
-                const endGame = this.checkEndGame();
-                if (endGame) {
-                    this.gameOver = true;
-                    this.playfield.gameOver();
-                } else if (this.emptyTiles.length === this.tilesArr.length) {
-                    this.randomizeTileValues(Playfield.randomTileColor_EASY);
-                }
             } else {
                 LogE("Cannot move here!");
             }
@@ -652,6 +680,7 @@ export class PlayMap implements Updateable {
 
         if (!this.gameOver) {
             this.setHoveredTile();
+            if (this.lock) return;
             if (this.hoveredTile) {
                 if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
                     if (this.selectedTile) {

@@ -1,7 +1,7 @@
 import { Tile } from "@components/Playfield/Tile/tile";
 import { CanAnimate } from "./animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
-import { Vector2 } from "@utils";
+import { Vector2, asyncNonce } from "@utils";
 
 export class AnimatableTile extends Tile implements CanAnimate {
     constructor(animId: string, t: Tile) {
@@ -13,6 +13,7 @@ export class AnimatableTile extends Tile implements CanAnimate {
         );
         this.color = t.color;
         this.bounds = new RectangleBounds(t.bounds);
+        this.zIndex = 9;
     }
     offsetXY: Vector2 = [0, 0];
     offsetSize: Vector2 = [0, 0];
@@ -38,6 +39,7 @@ export class AnimatableTile extends Tile implements CanAnimate {
             this.offsetSize[1] += height;
         }
     }
+
     async render(ctx: CanvasRenderingContext2D, _frame?: number) {
         let { x, y, width: w, height: h } = this.bounds;
         x += this.offsetXY[0];
@@ -50,9 +52,7 @@ export class AnimatableTile extends Tile implements CanAnimate {
         ctx.rect(x, y, w, h);
         ctx.fill();
         ctx.stroke();
-
-        ctx.fillStyle = "red";
-        ctx.fillRect(x + w / 2 - 1, y + h / 2 - 1, 2, 2);
+        this.renderPath(ctx);
     }
     async update() {}
 }

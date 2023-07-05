@@ -43,6 +43,7 @@ export abstract class GameAnimation extends StateManager<GameState> {
 
     end() {
         this.removeObjects();
+        this.onend(this.id);
     }
 
     removeObjects(): void {

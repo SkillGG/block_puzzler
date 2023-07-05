@@ -18,6 +18,7 @@ import { LoadedTexture } from "@components/Primitives/Texture/loadedTexture";
 const breakAnimationJSON = breakAnimData as PixellAnimData;
 
 export namespace BreakingAnimation {
+    export const ID = "breaking";
     export class sprite extends AnimatedSprite {
         static readonly breakFrameSize = 100;
 
@@ -26,7 +27,7 @@ export namespace BreakingAnimation {
         static loadBreakingSprites: SpriteAnimationLoader = async () => {
             const url = b1;
             if (!this.texture.isLoaded) await this.texture.load(url);
-            const lT = new LoadedTexture(this.texture, "breakAnim");
+            const lT = new LoadedTexture(this.texture, ID + "_anim");
             const sprites: Sprite[] = [];
             for (const frame of Object.values(breakAnimationJSON.frames)) {
                 const { x, y, w, h } = frame.frame;
@@ -43,14 +44,14 @@ export namespace BreakingAnimation {
             options: { tint: TileColor },
             onfinish: () => Promise<void>
         ) {
-            const sprites = SpriteLoader.getAnimationSprites("breaking");
+            const sprites = SpriteLoader.getAnimationSprites(ID);
             super(
                 id,
                 new RectangleBounds(
                     x,
                     y,
-                    BreakingAnimation.sprite.breakFrameSize,
-                    BreakingAnimation.sprite.breakFrameSize
+                    sprite.breakFrameSize,
+                    sprite.breakFrameSize
                 ),
                 sprites,
                 ("2" + ",2".repeat(sprites.length)).split(",").map(Number),
@@ -77,8 +78,7 @@ export namespace BreakingAnimation {
         async render(ctx: CanvasRenderingContext2D) {
             console.log("rendering animation", this.id);
             for (const t of this.tiles) {
-                if (t instanceof AnimatedSprite) await t.render(ctx);
-                else await t.render(ctx);
+                t.render(ctx);
             }
         }
         async update() {
@@ -87,14 +87,13 @@ export namespace BreakingAnimation {
             if (frame === 1) {
                 const newpos = this.origin;
                 let newid = "breaking_anim_" + this.id;
-                const animation = new BreakingAnimation.sprite(
+                const animation = new sprite(
                     newid,
                     newpos[0] - 5,
                     newpos[1] - 5,
                     { tint: this.tint },
                     async () => {
                         this.end();
-                        this.onend(this.id);
                     }
                 );
                 this.frameNumber = this.frame + animation.frameNumber;

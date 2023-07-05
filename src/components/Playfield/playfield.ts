@@ -7,6 +7,7 @@ import { getRandomWeightedNumber, randomInt } from "@utils";
 import { GameOptions } from "@/options";
 import { GameOverScreen } from "./gameOverScreen";
 import { BreakingAnimation } from "@components/Animation/Break/break";
+import { MovingAnimation } from "@components/Animation/Move/move";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
@@ -58,22 +59,42 @@ export class Playfield extends StateManager<GameState> {
 
     animations: number[] = [];
 
+    getFreeAnimationID = () => {
+        const nA = [...this.animations];
+        nA.sort((a, b) => a - b);
+        return (nA[nA.length - 1] || 0) + 1;
+    };
+
     playDestroyAnimation(c: Tile[]) {
-        const getFreeAnimationID = () => {
-            const nA = [...this.animations];
-            nA.sort((a, b) => a - b);
-            return (nA[nA.length - 1] || 0) + 1;
-        };
-        const animID = getFreeAnimationID();
+        const animNum = this.getFreeAnimationID();
+        const animID = "crash" + animNum;
         const anim = new BreakingAnimation.animation(
-            "crash" + animID,
+            animID,
             () => {
-                this.manager.removeStateManager("crash" + animID);
-                this.animations = this.animations.filter((a) => a !== animID);
+                this.manager.removeStateManager(animID);
+                this.animations = this.animations.filter((a) => a !== animNum);
             },
             c[0]
         );
-        this.animations.push(animID);
+        this.animations.push(animNum);
+        this.manager.addStateManager(anim);
+        anim.registerObjects();
+    }
+
+    playMovingAnimation(p: Tile[], onStart: () => void, onEnd: () => void) {
+        const animNum = this.getFreeAnimationID();
+        const animID = "move" + animNum;
+        const anim = new MovingAnimation.animation(
+            animID,
+            onStart,
+            () => {
+                this.manager.removeStateManager(animID);
+                this.animations = this.animations.filter((a) => a !== animNum);
+                onEnd();
+            },
+            p
+        );
+        this.animations.push(animNum);
         this.manager.addStateManager(anim);
         anim.registerObjects();
     }

@@ -252,3 +252,10 @@ export interface Renderable {
 }
 
 // #endregion Game interfaces
+
+// #region
+
+export const nonce: (...a: any[]) => any = () => {};
+export const asyncNonce: (...a: any[]) => Promise<any> = async () => {};
+
+//#endregion

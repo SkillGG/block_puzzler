@@ -80,7 +80,7 @@ game.run();
 
 previous = performance.now();
 
-SpriteLoader.addAnimation("breaking", async () =>
+SpriteLoader.addAnimation(BreakingAnimation.ID, async () =>
     BreakingAnimation.sprite.loadBreakingSprites()
 );
 
