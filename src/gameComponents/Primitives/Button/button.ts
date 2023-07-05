@@ -41,7 +41,7 @@ export class Button extends BoundedGameObject {
         this.label = new Label(`${id}_label`, bounds, label, style);
     }
     isIn: boolean = false;
-    update() {
+    async update() {
         const { _mousePosition: mousePos } = Game.input;
         const MouseEvent = { mousePos, target: this };
         if (Game.input.isPointerIn(this.bounds)) {
@@ -66,7 +66,7 @@ export class Button extends BoundedGameObject {
             });
         }
     }
-    render(ctx: CanvasRenderingContext2D) {
-        this.label.render(ctx);
+    async render(ctx: CanvasRenderingContext2D) {
+        await this.label.render(ctx);
     }
 }

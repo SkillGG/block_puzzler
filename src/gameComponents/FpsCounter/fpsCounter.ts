@@ -5,10 +5,11 @@ import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
 
 export class FpsCounter extends GameObject {
     label: Label;
-
-    constructor(pos: Vector2) {
+    constructor(pos: Vector2, font?: string) {
         super("fpsCounter");
         this.label = new Label("fpsLabel", new RectangleBounds(pos, [0, 0]));
+        this.label.style.font = font || "normal 1em auto";
+
         this.createTime = this.curTime = performance.now();
     }
     createTime: number;
@@ -17,7 +18,7 @@ export class FpsCounter extends GameObject {
     fpsValues: number[] = [];
     curTime: number;
     static readonly fpsAverageCount: number = 5;
-    update(timeStep: number) {
+    async update(timeStep: number) {
         var currentFps =
             Math.round(
                 (1000 / ((this.curTime - this.createTime) / this.fpsCount)) *
@@ -43,9 +44,9 @@ export class FpsCounter extends GameObject {
             );
         return 0;
     }
-    render(ctx: CanvasRenderingContext2D) {
+    async render(ctx: CanvasRenderingContext2D) {
         this.fpsCount++;
         this.label.text = "FPS: " + this.getAverageFPS();
-        this.label.render(ctx);
+        await this.label.render(ctx);
     }
 }

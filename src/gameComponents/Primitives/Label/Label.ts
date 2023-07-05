@@ -44,8 +44,8 @@ export class Label extends BoundedGameObject {
         });
         this.initStyle = { ...style };
     }
-    render(ctx: CanvasRenderingContext2D): void {
-        this.border.render(ctx);
+    async render(ctx: CanvasRenderingContext2D) {
+        await this.border.render(ctx);
         ctx.font = this.style.font;
         const textBounds = ctx.measureText(this.text);
         const textWidth =
@@ -78,5 +78,5 @@ export class Label extends BoundedGameObject {
                 : undefined
         );
     }
-    update(): void {}
+    async update() {}
 }

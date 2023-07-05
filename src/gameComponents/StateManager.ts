@@ -1,6 +1,6 @@
 import { GameObject } from "@component/GameObject";
 import { ObjectManager } from "@component/ObjectManager";
-import { Updateable } from "./interfaces";
+import { Updateable } from "./utils";
 
 export abstract class StateManager<T extends string> implements Updateable {
     id: string;
@@ -18,7 +18,7 @@ export abstract class StateManager<T extends string> implements Updateable {
     removeObject(...obs: GameObject[]) {
         for (const o of obs) this.manager.removeObject(o.id, this.state);
     }
-    abstract update(t: number): void;
+    abstract update(t: number): Promise<void>;
     abstract removeObjects(): void;
     abstract registerObjects(): void;
 }

@@ -4,10 +4,7 @@ import { StateManager } from "@component/StateManager";
 import { Playfield } from "./playfield";
 import { Rectangle } from "@component/Primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
-import {
-    Label,
-    LabelWithBorderStyle,
-} from "@component/Primitives/Label/Label";
+import { Label, LabelWithBorderStyle } from "@component/Primitives/Label/Label";
 import { GameObject } from "@component/GameObject";
 import { GameOptions } from "@/options";
 import { Button } from "@component/Primitives/Button/button";
@@ -190,7 +187,7 @@ export class GameOverScreen extends StateManager<GameState> {
             )
         );
     }
-    update(): void {
+    async update() {
         // handle clicks on GameOverScreen
         const osm = GameOptions.instance;
         if (!osm) return;

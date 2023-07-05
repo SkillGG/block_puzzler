@@ -1,7 +1,7 @@
 import { Vector_2, randomInt } from "@utils/utils";
 import { PathBlock, Tile, TileColor, TileCoords } from "../Tile/tile";
 import { Game } from "@/game";
-import { Updateable } from "@component/interfaces";
+import { Updateable } from "@component/utils";
 import { LEFT_MOUSE_BUTTON } from "@component/KeyboardManager";
 import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
@@ -621,7 +621,7 @@ export class PlayMap implements Updateable {
 
     selectedWithDrag = false;
 
-    update(time: number) {
+    async update(time: number) {
         // const start = performance.now();
 
         const confirmMove = (tile1: TileCoords, tile2: TileCoords) => {
@@ -807,8 +807,5 @@ export class PlayMap implements Updateable {
             }
         }
         this.clogDelta += time;
-        // const end = performance.now();
-        // if (this.clogDelta % 1000 < 20)
-        //     console.log("updateTime:", end - start, "ms");
     }
 }

@@ -1,6 +1,6 @@
 import { Game } from "@/game";
 import { GameObject } from "@component/GameObject";
-import { Renderable, Updateable } from "@component/interfaces";
+import { Renderable, Updateable } from "@component/utils";
 import { StateManager } from "@component/StateManager";
 
 export class ObjectManager<AvailableStates extends string>
@@ -67,16 +67,16 @@ export class ObjectManager<AvailableStates extends string>
             .map((layer) => layer[1]);
     };
 
-    render(ctx: CanvasRenderingContext2D) {
+    async render(ctx: CanvasRenderingContext2D) {
         const objectsFromThisState = this.stateObjects.get(this.currentState);
         if (objectsFromThisState) {
-            this.divideByZ(objectsFromThisState).forEach((zLayer) => {
-                zLayer.forEach((obj) => {
+            for (const zLayer of this.divideByZ(objectsFromThisState)) {
+                for (const obj of zLayer) {
                     ctx.beginPath();
-                    obj.safeCTXRender(ctx);
+                    await obj.safeCTXRender(ctx);
                     ctx.closePath();
-                });
-            });
+                }
+            }
         }
     }
     getStateObjects(state: AvailableStates) {
@@ -103,14 +103,14 @@ export class ObjectManager<AvailableStates extends string>
         if (!sObjs) return null;
         return (sObjs.find((o) => o.id === id) as T) || null;
     }
-    update(time: number) {
-        this.objectManagers
-            .filter((om) => om.state === this.currentState)
-            .forEach((om) => {
-                om.update(time);
-            });
-        this.stateObjects.get(this.currentState)?.forEach((obj) => {
-            obj.update(time);
-        });
+    async update(time: number) {
+        for (const om of this.objectManagers.filter(
+            (om) => om.state === this.currentState
+        )) {
+            await om.update(time);
+        }
+        for (const obj of this.stateObjects.get(this.currentState) || []) {
+            await obj.update(time);
+        }
     }
 }

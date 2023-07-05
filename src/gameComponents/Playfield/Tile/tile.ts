@@ -96,7 +96,7 @@ export class Tile extends BoundedGameObject {
         this.zIndex = 0;
     }
 
-    renderPath(ctx: CanvasRenderingContext2D) {
+    async renderPath(ctx: CanvasRenderingContext2D) {
         if (this.pathBlockValue === PathBlock.NONE) return;
         ctx.beginPath();
         ctx.strokeStyle = "white";
@@ -167,7 +167,7 @@ export class Tile extends BoundedGameObject {
         ctx.closePath();
     }
 
-    render(ctx: CanvasRenderingContext2D): void {
+    async render(ctx: CanvasRenderingContext2D) {
         ctx.fillStyle = this.color;
         ctx.strokeStyle = this.selected ? Tile.HIGHLIGHT_COLOR : "black";
         ctx.lineWidth = 2;
@@ -181,19 +181,11 @@ export class Tile extends BoundedGameObject {
         ctx.fill();
         ctx.stroke();
 
-        this.renderPath(ctx);
-
-        // ctx.font = "normal 1.3em auto";
-        // ctx.fillStyle = "black";
-        // ctx.fillText(
-        //     this.id.replace("tile", ""),
-        //     this.bounds.x + 3,
-        //     this.bounds.y + 20
-        // );
+        await this.renderPath(ctx);
     }
     setColor(c: TileColor) {
         if (!c) return;
         this.color = c;
     }
-    update(): void {}
+    async update() {}
 }

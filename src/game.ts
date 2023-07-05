@@ -1,7 +1,7 @@
 import { DevConsole } from "@/console";
 import { InputManager } from "@component/KeyboardManager";
 import { ObjectManager } from "@component/ObjectManager";
-import { Renderable, Updateable } from "@component/interfaces";
+import { Renderable, Updateable } from "@component/utils";
 import { GameOptions } from "@/options";
 import { Vector2 } from "@utils/utils";
 import { GameState } from "@/main";
@@ -123,9 +123,6 @@ export class Game<T extends string>
     stop() {
         this.running = false;
     }
-    addDrawCall(drawFn: (ctx: CanvasRenderingContext2D) => void) {
-        drawFn(this.canvasContext);
-    }
     checkUI() {
         if (this.options.stateManager) {
             if (this.options.isHidden) {
@@ -143,15 +140,15 @@ export class Game<T extends string>
             }
         }
     }
-    update(timeStep: number) {
-        this.manager.update(timeStep);
-        Game.input.update();
-        this.options.refreshUI();
+    async update(timeStep: number) {
+        await this.manager.update(timeStep);
+        await Game.input.update();
+        await this.options.refreshUI();
     }
-    render() {
-        this.checkUI();
+    async render() {
+        await this.checkUI();
         this.canvasContext.clearRect(0, 0, this.width, this.height);
-        this.manager.render(this.canvasContext);
+        await this.manager.render(this.canvasContext);
     }
 }
 customElements.define("game-", Game, { extends: "canvas" });

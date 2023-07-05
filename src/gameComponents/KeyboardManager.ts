@@ -1,7 +1,7 @@
 import { Game } from "@/game";
 import { Vector2, Vector_2 } from "@utils/utils";
 import { RectangleBounds } from "./Primitives/Rectangle/RectangleBounds";
-import { Updateable } from "./interfaces";
+import { Updateable } from "./utils";
 
 export const LEFT_MOUSE_BUTTON = 0;
 export const MIDDLE_MOUSE_BUTTON = 1;
@@ -171,7 +171,7 @@ export class InputManager implements Updateable {
         }
         this.mouseInputScale = this.getMouseInputScaleFactors();
     }
-    update() {
+    async update() {
         this.pointerStateChanged = false;
         this.pointerButtonsClicked = new Set();
         if (!this.firstUpdate) {

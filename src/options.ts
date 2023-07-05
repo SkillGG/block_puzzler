@@ -91,7 +91,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         this.registerObject(this.movesLabel);
         this.areRegistered = true;
     }
-    update(): void {
+    async update() {
         this.refreshUI();
     }
 }

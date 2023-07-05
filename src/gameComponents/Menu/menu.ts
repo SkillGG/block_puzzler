@@ -79,5 +79,5 @@ export class GameMenu extends StateManager<GameState> {
     registerObjects(): void {
         this.registerObject(this.menuLabel, this.startButton);
     }
-    update() {}
+    async update() {}
 }

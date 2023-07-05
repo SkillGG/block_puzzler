@@ -86,7 +86,7 @@ export class Playfield extends StateManager<GameState> {
         if (!osm) return;
         osm.addPoints(pts);
     }
-    update(time: number): void {
-        this.map.update(time);
+    async update(time: number) {
+        await this.map.update(time);
     }
 }

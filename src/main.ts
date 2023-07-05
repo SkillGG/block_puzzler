@@ -62,16 +62,16 @@ const targetFPS = 60;
 const fpsInterval: number = 1000 / targetFPS;
 let previous: number;
 
-function loop() {
-    requestAnimationFrame(loop);
+async function loop() {
     const curtime = performance.now();
     const timeDelta = curtime - previous;
     if (timeDelta > fpsInterval) {
         fpsCounter.curTime = curtime;
         previous = curtime - (timeDelta % fpsInterval);
-        game.update(timeDelta);
-        game.render();
+        await game.update(timeDelta);
+        await game.render();
     }
+    requestAnimationFrame(loop);
 }
 
 game.run();

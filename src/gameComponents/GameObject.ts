@@ -1,6 +1,6 @@
 import { Game } from "@/game";
 import { RectangleBounds } from "@primitive/Rectangle/RectangleBounds";
-import { Renderable, Updateable } from "./interfaces";
+import { Renderable, Updateable } from "./utils";
 
 export abstract class GameObject implements Updateable, Renderable {
     id: string;
@@ -14,8 +14,8 @@ export abstract class GameObject implements Updateable, Renderable {
         this.render(ctx);
         ctx.restore();
     }
-    abstract render(ctx: CanvasRenderingContext2D): void;
-    abstract update(time: number): void;
+    abstract render(ctx: CanvasRenderingContext2D): Promise<void>;
+    abstract update(time: number): Promise<void>;
 }
 
 export abstract class BoundedGameObject extends GameObject {
