@@ -341,10 +341,10 @@ export class PlayMap implements Updateable {
             const neighRow = coords.row + offset[1];
             const neighCol = coords.col + offset[0];
             if (
-                neighCol < this.colNum - 1 &&
-                neighRow < this.rowNum - 1 &&
-                neighCol > 0 &&
-                neighRow > 0
+                neighCol <= this.colNum - 1 &&
+                neighRow <= this.rowNum - 1 &&
+                neighCol >= 0 &&
+                neighRow >= 0
             )
                 neighbours.push(this.getTile(neighCol, neighRow));
         });
@@ -664,6 +664,7 @@ export class PlayMap implements Updateable {
     confirmPlacement: TileCoords | null = null;
 
     selectedWithDrag = false;
+    startedNewDrag: TileCoords | false = false;
 
     async update(time: number) {
         // const start = performance.now();
@@ -671,6 +672,9 @@ export class PlayMap implements Updateable {
         const confirmMove = (tile1: TileCoords, tile2: TileCoords) => {
             if (this.canMoveTo(tile1)) {
                 this.swapTiles(tile1, tile2);
+                this.deselectTile(this.getTile(tile1));
+                this.deselectTile(this.getTile(tile2));
+                this.clearPath();
             } else {
                 LogE("Cannot move here!");
             }
@@ -678,6 +682,12 @@ export class PlayMap implements Updateable {
 
         if (!this.gameOver) {
             this.setHoveredTile();
+            if (this.startedNewDrag) {
+                if (this.selectedTile)
+                    this.deselectTile(this.getTile(this.selectedTile));
+                this.selectTile(this.getTile(this.startedNewDrag));
+                this.startedNewDrag = false;
+            }
             if (this.lock) return;
             if (this.hoveredTile) {
                 if (Game.input.hasMouseClicked(LEFT_MOUSE_BUTTON)) {
@@ -691,13 +701,15 @@ export class PlayMap implements Updateable {
                             this.deselectTile(this.hoveredTile);
                             this.clearPath();
                         } else if (this.hoveredTile.color === TileColor.NONE) {
-                            this.confirmPlacement = null;
-                            confirmMove(
-                                this.hoveredTile.coords,
-                                this.selectedTile
-                            );
-                            this.deselectTile(this.hoveredTile);
-                            this.clearPath();
+                            if (
+                                this.hoveredTile.pathBlockValue !==
+                                PathBlock.ERR
+                            ) {
+                                confirmMove(
+                                    this.hoveredTile.coords,
+                                    this.selectedTile
+                                );
+                            }
                         } else {
                             this.deselectTile(this.getTile(this.selectedTile));
                             this.selectTile(this.hoveredTile);
@@ -709,10 +721,12 @@ export class PlayMap implements Updateable {
                     }
                 } else {
                     if (Game.input.hasTouchClicked()) {
+                        console.log(this.hoveredTile);
                         if (
                             this.dragging &&
                             this.considerDrag(this.hoveredTile.coords)
                         ) {
+                            console.log("released drag");
                             if (this.selectedTile) {
                                 // released drag
                                 const osm = GameOptions.instance;
@@ -720,6 +734,7 @@ export class PlayMap implements Updateable {
                                 if (osm) {
                                     autoPlace = osm.autoPlaceAfterDrag;
                                 }
+
                                 if (autoPlace) {
                                     if (
                                         this.hoveredTile !==
@@ -771,23 +786,32 @@ export class PlayMap implements Updateable {
                                 }
                             }
                         } else {
+                            console.log("clicked");
                             // just clicked
                             if (this.selectedTile) {
                                 if (this.hoveredTile.color !== TileColor.NONE) {
                                     // clicked on color
+                                    console.log(this.hoveredTile);
                                     if (
                                         this.hoveredTile !==
                                         this.getTile(this.selectedTile)
                                     ) {
-                                        console.log(this.selectedWithDrag);
+                                        console.log(
+                                            "Clicked on non-selected",
+                                            this.confirmPlacement,
+                                            this.selectedWithDrag
+                                        );
                                         let done = false;
                                         const cPC = this.confirmPlacement;
                                         if (cPC && this.selectedWithDrag) {
+                                            console.log("Checking neighbours");
+                                            const neighs = this.getNeighbours(
+                                                this.hoveredTile.coords,
+                                                0
+                                            );
+                                            console.log("Neighbours", neighs);
                                             if (
-                                                this.getNeighbours(
-                                                    this.hoveredTile.coords,
-                                                    1
-                                                ).find(
+                                                neighs.find(
                                                     (x) =>
                                                         x.coords.col ===
                                                             cPC.col &&
@@ -845,8 +869,10 @@ export class PlayMap implements Updateable {
                         }
                         this.dragging = false;
                         this.dragStartCoords = null;
+                        this.startedNewDrag = false;
                     } else if (Game.input.hasPressedTouch()) {
                         // started dragging
+                        console.log("SDrag");
                         this.dragging = true;
                         this.dragStartCoords = this.hoveredTile.coords;
                         if (!this.selectedTile) {
@@ -854,6 +880,9 @@ export class PlayMap implements Updateable {
                             if (this.hoveredTile.color !== TileColor.NONE) {
                                 this.selectTile(this.hoveredTile);
                             }
+                        } else {
+                            if (this.hoveredTile.color !== TileColor.NONE)
+                                this.startedNewDrag = this.hoveredTile.coords;
                         }
                     }
                 }
