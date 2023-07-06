@@ -3,7 +3,7 @@ import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import b1 from "./assets/Break.png";
 import breakAnimData from "./assets/Break.json";
 import { Vector2 } from "@utils";
-import { Tile, TileColor } from "@components/Playfield/Tile/tile";
+import { Tile, TileColor, TileSize } from "@components/Playfield/Tile/tile";
 import { PixellAnimData } from "../utils";
 import { AnimatedSprite } from "../animatedSprite";
 import { GameAnimation } from "../animation";
@@ -20,7 +20,7 @@ const breakAnimationJSON = breakAnimData as PixellAnimData;
 export namespace BreakingAnimation {
     export const ID = "breaking";
     export class sprite extends AnimatedSprite {
-        static readonly breakFrameSize = 100;
+        static readonly breakFrameSize = TileSize * 2 + (1 / 11) * TileSize;
 
         private static texture: Texture = new Texture();
 
@@ -54,14 +54,14 @@ export namespace BreakingAnimation {
                     sprite.breakFrameSize
                 ),
                 sprites,
-                ("2" + ",2".repeat(sprites.length)).split(",").map(Number),
+                [],
                 async () => {
                     for (const sprite of sprites) {
                         await sprite.setTint(options.tint);
                     }
                 },
                 onfinish,
-                18 * 2
+                60 // fps
             );
         }
     }
@@ -70,7 +70,7 @@ export namespace BreakingAnimation {
         origin: Vector2;
         tint: TileColor;
         constructor(id: string, end: (id: string) => void, ltTile: Tile) {
-            super(id, end, 30);
+            super(id, end);
             this.origin = [...ltTile.bounds.getPosition()];
             this.tint = ltTile.color;
             this.frame = 0;
@@ -96,7 +96,6 @@ export namespace BreakingAnimation {
                         this.end();
                     }
                 );
-                this.frameNumber = this.frame + animation.frameNumber;
                 this.tiles.push(animation);
                 this.registerObject(animation);
                 await animation.play();

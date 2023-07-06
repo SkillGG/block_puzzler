@@ -18,7 +18,6 @@ export abstract class GameAnimation extends StateManager<GameState> {
     tiles: (AnimatableTile | AnimatedSprite)[];
     frame: number;
     defaultID = "animation";
-    frameNumber: number = 0;
     animating = false;
     startAnimation() {
         this.animating = true;
@@ -27,7 +26,6 @@ export abstract class GameAnimation extends StateManager<GameState> {
     constructor(
         id: string,
         end: (id: string) => void,
-        frameNum: number,
         ...tiles: Tile[]
     ) {
         super(id, Game.instance!.manager, GameState.GAME);
@@ -36,7 +34,6 @@ export abstract class GameAnimation extends StateManager<GameState> {
             .map((t) => new AnimatableTile(this.id, t));
         this.frame = 0;
         this.onend = end;
-        this.frameNumber = frameNum;
     }
     abstract render(_: CanvasRenderingContext2D): void;
     abstract update(dt: number): Promise<void>;

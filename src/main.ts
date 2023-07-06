@@ -60,7 +60,7 @@ game.manager.addStateManager(new Playfield(game.manager));
  * Game loop
  */
 
-const targetFPS = 60;
+const targetFPS = Game.desiredFPS;
 const fpsInterval: number = 1000 / targetFPS;
 let previous: number;
 

@@ -4,6 +4,7 @@ import {
     Tile,
     TileColor,
     TileCoords,
+    TileSize,
 } from "@components/Playfield/Tile/tile";
 import { Game } from "@/game";
 import { LEFT_MOUSE_BUTTON } from "@components/KeyboardManager";
@@ -11,6 +12,9 @@ import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
 import { Astar, AstarPath, Grid } from "@astar";
 import { GameOptions } from "@/options";
+import { RainbowTile } from "../Tile/rainbowTile";
+import { Rectangle } from "@primitives/Rectangle/Rectangle";
+import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
 export class PlayMap implements Updateable {
     gameOver = false;
@@ -69,6 +73,11 @@ export class PlayMap implements Updateable {
 
     private playfield: Playfield;
 
+    border = new Rectangle("map_border", new RectangleBounds(0, 0, 0, 0), {
+        strokeColor: "black",
+        strokeWidth: 2,
+    });
+
     constructor(pos: Vector_2, playfield: Playfield) {
         this.pos = pos;
         this.playfield = playfield;
@@ -83,7 +92,7 @@ export class PlayMap implements Updateable {
                         `tile${col + cols * row}`,
                         this.pos,
                         [row, col],
-                        [50, 50]
+                        [TileSize, TileSize]
                     )
                 );
             }
@@ -96,6 +105,11 @@ export class PlayMap implements Updateable {
         this.eachTile((t) => {
             t.moveBy([newLeft, 0]);
         });
+        this.border.bounds.setPosition(this._tiles[0][0].bounds.getPosition());
+        this.border.bounds.setSize([
+            this._tiles[0].reduce((p, n) => p + n.bounds.width, 0),
+            this._tiles.reduce((p, n) => p + n[0].bounds.height, 0),
+        ]);
         this.getRandomTile().setColor(Playfield.randomTileColor());
         this.randomizeTileValues(Playfield.randomTileColor_EASY);
         this.playable = true;
@@ -127,7 +141,7 @@ export class PlayMap implements Updateable {
             n: number,
             a: Tile[][],
             moveNum: number
-        ) => TileColor
+        ) => TileColor | "rainbow"
     ) {
         LogI("Randomizing colors!");
         let coloredTiles = 0;
@@ -138,7 +152,19 @@ export class PlayMap implements Updateable {
                 this.tiles,
                 this.numberOfMoves
             );
-            if (randomColor !== TileColor.NONE && t.color !== randomColor) {
+            if (randomColor === "rainbow") {
+                t.transmutate(
+                    new RainbowTile(
+                        t.id + "rainbow",
+                        t.originalAnchor,
+                        [t.coords.col, t.coords.row],
+                        t.size
+                    )
+                );
+            } else if (
+                randomColor !== TileColor.NONE &&
+                t.color !== randomColor
+            ) {
                 // LogI("swapping colors for tile", t.id, "to ", randomColor);
                 t.setColor(randomColor);
                 coloredTiles++;

@@ -49,6 +49,8 @@ export class Playfield extends StateManager<GameState> {
         if (t.color !== TileColor.NONE) return t.color;
         if (n >= 5) return TileColor.NONE;
 
+        // return "random";
+
         return getRandomWeightedNumber(
             Object.values(TileColor).map((color) => {
                 if (color === TileColor.NONE) return [80, color];
@@ -120,10 +122,12 @@ export class Playfield extends StateManager<GameState> {
     }
     removeObjects(): void {
         this.map.eachTile((t) => this.removeObject(t));
+        this.removeObject(this.map.border);
         this.map.destroy();
     }
     registerObjects(): void {
         this.map.eachTile((t) => this.registerObject(t));
+        this.registerObject(this.map.border);
     }
     addPoints(pts: number): void {
         const osm = GameOptions.instance;

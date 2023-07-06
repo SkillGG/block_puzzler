@@ -1,7 +1,7 @@
-import { Tile } from "@components/Playfield/Tile/tile";
+import { Tile, TileColor } from "@components/Playfield/Tile/tile";
 import { CanAnimate } from "./animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
-import { Vector2 } from "@utils";
+import { Vector2, colorDataToString, colorToRGBA } from "@utils";
 
 export class AnimatableTile extends Tile implements CanAnimate {
     constructor(animId: string, t: Tile) {
@@ -13,7 +13,7 @@ export class AnimatableTile extends Tile implements CanAnimate {
         );
         this.color = t.color;
         this.bounds = new RectangleBounds(t.bounds);
-        this.zIndex = 9;
+        this.zIndex = 1000;
     }
     offsetXY: Vector2 = [0, 0];
     offsetSize: Vector2 = [0, 0];
@@ -46,12 +46,17 @@ export class AnimatableTile extends Tile implements CanAnimate {
         y += this.offsetXY[1];
         w += this.offsetSize[0];
         h += this.offsetSize[1];
-        ctx.fillStyle = this.color;
+        if (this.color !== TileColor.NONE) {
+            const noAlpha = colorToRGBA(this.color);
+            if (noAlpha) noAlpha[3] = 255;
+            ctx.fillStyle = colorDataToString(noAlpha) || "transparent";
+        } else ctx.fillStyle = this.color;
+
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
         ctx.rect(x, y, w, h);
         ctx.fill();
-        ctx.stroke();
+        if (this.color != TileColor.NONE) ctx.stroke();
         this.renderPath(ctx);
     }
 }

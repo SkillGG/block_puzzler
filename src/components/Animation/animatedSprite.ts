@@ -8,7 +8,6 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     sprites: Sprite[];
     frameTick = 0;
     frame = 0;
-    lastFrameTick = 0;
     frameNumber: number;
     frameDelays: number[] = [];
 
@@ -82,17 +81,20 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     async update(time: number) {
         const frameInterval = 1000 / this.fps;
         if (this.playing) {
-            if (
-                this.frameTick - this.lastFrameTick >=
-                this.frameDelays[this.frame]
-            ) {
-                this.frame++;
-                this.lastFrameTick = this.frameTick;
+            if (this.frameDelays[this.frame] < this.frameTick) {
+                const framesUpBy = Math.floor(
+                    this.frameTick / (this.frameDelays[this.frame] || 1)
+                );
+                this.frame += framesUpBy;
+                this.frameTick = 0;
             }
 
             if (this.timeElapsed > frameInterval) {
+                const frameTicksUpBy = Math.floor(
+                    this.timeElapsed / frameInterval
+                );
+                this.frameTick += frameTicksUpBy;
                 this.timeElapsed = 0;
-                this.frame++;
             }
 
             this.timeElapsed += time;

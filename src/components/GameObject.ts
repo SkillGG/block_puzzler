@@ -9,9 +9,9 @@ export abstract class GameObject implements Updateable, Renderable {
         this.id = id;
         this.zIndex = zIndex;
     }
-    safeCTXRender(ctx: CanvasRenderingContext2D): void {
+    async safeCTXRender(ctx: CanvasRenderingContext2D) {
         ctx.save();
-        this.render(ctx);
+        await this.render(ctx);
         ctx.restore();
     }
     abstract render(ctx: CanvasRenderingContext2D): Promise<void>;

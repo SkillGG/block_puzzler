@@ -39,18 +39,12 @@ export const CTXSavedProperties: Set<keyof CanvasRenderingContext2D> = new Set([
     "imageSmoothingQuality",
 ]);
 
-export const getCTXProperties = (ctx: CanvasRenderingContext2D) => {
-    return Object.fromEntries(
-        [...CTXSavedProperties].map((prop) => {
-            return [prop, ctx[prop]];
-        })
-    ) as Record<keyof CanvasRenderingContext2D, any>;
-};
-
 export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
 {
+    static readonly desiredFPS = 60;
+
     canvasContext: CanvasRenderingContext2D;
     running: boolean = false;
     manager: ObjectManager<T>;
@@ -85,8 +79,6 @@ export class Game<T extends string>
         return [Game.getWidth(), Game.getHeight()];
     }
 
-    static defaultCTX: Record<keyof CanvasRenderingContext2D, any>;
-
     constructor(
         devConsole: DevConsole,
         options: GameOptions<T>,
@@ -105,7 +97,6 @@ export class Game<T extends string>
         this.canvasContext = cC;
         this.width = this.gameWidth;
         this.height = this.gameHeight;
-        Game.defaultCTX = getCTXProperties(cC);
         Game.instance = this;
     }
     getComputedStyle() {

@@ -3,6 +3,7 @@ import { GameAnimation } from "../animation";
 import { AnimatableTile } from "../animatedTile";
 import { Vector2, lerp } from "@utils";
 import { AnimatedSprite } from "../animatedSprite";
+import { Game } from "@/game";
 
 export namespace MovingAnimation {
     export const ID = "moving";
@@ -46,7 +47,7 @@ export namespace MovingAnimation {
             end: (id: string) => void,
             path: Tile[]
         ) {
-            super(id, end, 30);
+            super(id, end);
             this.frame = 0;
             this.tiles = path.map((q) => {
                 return new AnimatableTile(id + "_tile_" + q.id, q);
@@ -56,6 +57,7 @@ export namespace MovingAnimation {
             this.totalDistance = this.pathDistance(
                 path[0].bounds.getPosition()
             );
+            this.tiles = [this.tiles[0]];
             start();
         }
         async render(ctx: CanvasRenderingContext2D) {
@@ -146,11 +148,8 @@ export namespace MovingAnimation {
 
         async update(dT: number) {
             this.frame++;
-            this.blendT = ((this.frame / this.totalDistance) * 60) / 3;
 
-            const newT = lerp(0, this.totalDistance, this.blendT);
-
-            this.traveled = newT;
+            this.traveled = this.traveled + dT * 2;
 
             if (this.totalDistance - this.traveled < 3)
                 this.traveled = this.totalDistance;

@@ -24,6 +24,8 @@ export enum PathBlock {
 
 export type TileCoords = { col: number; row: number };
 
+export const TileSize = 50;
+
 export class Tile extends BoundedGameObject {
     static HIGHLIGHT_COLOR = "white";
 
@@ -32,6 +34,7 @@ export class Tile extends BoundedGameObject {
     anchor: Vector_2;
     size: Vector2;
     coords: TileCoords;
+    padding = 0;
 
     color: TileColor = TileColor.NONE;
 
@@ -55,6 +58,12 @@ export class Tile extends BoundedGameObject {
         this.size = [width, height];
         this.coords = { col, row };
         this.applyPositionChange();
+    }
+
+    transmutatedTo: Tile | null = null;
+
+    transmutate(t: Tile) {
+        this.transmutatedTo = t;
     }
 
     moveTo(pos: Vector_2) {
@@ -170,24 +179,32 @@ export class Tile extends BoundedGameObject {
     }
 
     async render(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = this.color;
-        ctx.strokeStyle = this.selected ? Tile.HIGHLIGHT_COLOR : "black";
-        ctx.lineWidth = 2;
-        if (this.selected) ctx.lineWidth = 5;
-        ctx.rect(
-            this.bounds.x,
-            this.bounds.y,
-            this.bounds.width,
-            this.bounds.height
-        );
-        ctx.fill();
-        ctx.stroke();
+        if (this.transmutatedTo) {
+            await this.transmutatedTo.render(ctx);
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.strokeStyle = this.selected ? Tile.HIGHLIGHT_COLOR : "black";
+            ctx.lineWidth = 2;
+            if (this.selected) ctx.lineWidth = 5;
+            ctx.rect(
+                this.bounds.x + this.padding,
+                this.bounds.y + this.padding,
+                this.bounds.width - 2 * this.padding,
+                this.bounds.height - 2 * this.padding
+            );
+            ctx.fill();
+            if (this.color !== TileColor.NONE) ctx.stroke();
 
-        await this.renderPath(ctx);
+            await this.renderPath(ctx);
+        }
     }
     setColor(c: TileColor) {
         if (!c) return;
         this.color = c;
     }
-    update = asyncNonce;
+    async update(dT: number) {
+        if (this.transmutatedTo) {
+            this.transmutatedTo.update(dT);
+        }
+    }
 }
