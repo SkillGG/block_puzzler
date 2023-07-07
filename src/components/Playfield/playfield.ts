@@ -20,7 +20,7 @@ export class Playfield extends StateManager<GameState> {
 
     constructor(manager: ObjectManager<GameState>) {
         super(Playfield.DefaultID, manager, GameState.GAME);
-        this.map = new PlayMap({ x: 0, y: 50 }, this);
+        this.map = new PlayMap({ x: "center", y: 75 }, this);
         this.gameOverScreen = new GameOverScreen(this);
         this.manager.addStateManager(this.gameOverScreen);
     }
@@ -68,11 +68,13 @@ export class Playfield extends StateManager<GameState> {
     };
 
     playDestroyAnimation(c: Tile[]) {
+        console.log("Adding destroy animation");
         const animNum = this.getFreeAnimationID();
-        const animID = "crash" + animNum;
+        const animID = "break" + animNum;
         const anim = new BreakingAnimation.animation(
             animID,
             () => {
+                console.log("removing animation", animID);
                 this.manager.removeStateManager(animID);
                 this.animations = this.animations.filter((a) => a !== animNum);
             },

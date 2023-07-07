@@ -8,6 +8,12 @@ import {
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { LoadedTexture } from "@primitives/Texture/loadedTexture";
 
+export type SpriteOptions = {
+    cacheTints?: true | string[];
+    source: RectangleBounds;
+    destinationBounds?: RectangleBounds;
+    tint?: string;
+};
 export class Sprite implements Renderable {
     private texture: LoadedTexture;
     private sourceBounds: RectangleBounds;
@@ -28,23 +34,21 @@ export class Sprite implements Renderable {
         return img;
     }
 
-    constructor(
-        t: LoadedTexture,
-        source: RectangleBounds,
-        dest?: RectangleBounds,
-        tint?: string
-    );
+    get destination() {
+        return this.destinationBounds;
+    }
+
+    get source() {
+        return this.sourceBounds;
+    }
+
+    constructor(t: LoadedTexture, options?: SpriteOptions);
     /**
      * Copying constructor
      * @param s Sprite to copy
      */
     constructor(s: Sprite);
-    constructor(
-        texOrSprite: LoadedTexture | Sprite,
-        sourceOrID?: RectangleBounds,
-        destinationBounds?: RectangleBounds,
-        tint?: string
-    ) {
+    constructor(texOrSprite: LoadedTexture | Sprite, options?: SpriteOptions) {
         if (texOrSprite instanceof Sprite) {
             this.texture = texOrSprite.texture;
             this.sourceBounds = new RectangleBounds(texOrSprite.sourceBounds);
@@ -53,30 +57,33 @@ export class Sprite implements Renderable {
             );
             this.tint = texOrSprite.tint;
             this.cachedImage = new Image();
-        } else if (
-            texOrSprite instanceof LoadedTexture &&
-            typeof sourceOrID === "object"
-        ) {
+        } else if (texOrSprite instanceof LoadedTexture && options) {
             this.texture = texOrSprite;
-            this.sourceBounds = sourceOrID;
+            this.sourceBounds = options.source;
             this.destinationBounds =
-                destinationBounds ||
-                new RectangleBounds(0, 0, sourceOrID.width, sourceOrID.height);
-            this.tint = colorDataToString(colorToRGBA(tint)) || "transparent";
+                options.destinationBounds ||
+                new RectangleBounds(
+                    0,
+                    0,
+                    this.sourceBounds.width,
+                    this.sourceBounds.height
+                );
+            this.tint =
+                colorDataToString(colorToRGBA(options?.tint)) || "transparent";
             this.cachedImage = new Image();
-            this.recache();
+            if (options?.cacheTints) this.recache(options.cacheTints);
             this.staleCache = false;
             this.cachedImage.onerror = () => (this.staleCache = true);
         } else {
-            throw "";
+            throw "Incorrect Sprite constructor";
         }
     }
-    async recache() {
-        this.cacheColoredImages(true);
+    async recache(tints: true | string[]) {
+        this.cacheColoredImages(true, tints === true ? undefined : tints);
     }
-    async cacheColoredImages(force = false) {
+    async cacheColoredImages(force = false, tints?: string[]) {
         const pTint = this.tint;
-        const colors = Object.values(TileColor);
+        const colors = tints || Object.values(TileColor);
         for (let i = 0; i < colors.length; i++) {
             this.tint = colors[i];
             await this.cacheImage(this.tint, force);
@@ -125,6 +132,7 @@ export class Sprite implements Renderable {
         await this.cacheImage(t);
     }
 
+    moveTo(x: number, y: number): void;
     moveTo(r: RectangleBounds): void;
     moveTo(x: number, y: number, w: number, h: number): void;
     moveTo(
@@ -137,11 +145,14 @@ export class Sprite implements Renderable {
             this.destinationBounds = xOrBounds;
         } else if (
             typeof xOrBounds !== "undefined" &&
-            typeof y !== "undefined" &&
-            typeof w !== "undefined" &&
-            typeof h !== "undefined"
+            typeof y !== "undefined"
         ) {
-            this.destinationBounds = new RectangleBounds(xOrBounds, y, w, h);
+            this.destinationBounds = new RectangleBounds(
+                xOrBounds,
+                y,
+                w || this.destinationBounds.width,
+                h || this.destinationBounds.height
+            );
         }
     }
     changeCrop(sx: number, sy: number, sw: number, sh: number) {
@@ -153,6 +164,6 @@ export class Sprite implements Renderable {
             await this.cacheImage();
         }
         const { x, y, width: w, height: h } = this.destinationBounds;
-            ctx.drawImage(this.cachedImage, x, y, w, h);
+        ctx.drawImage(this.cachedImage, x, y, w, h);
     }
 }

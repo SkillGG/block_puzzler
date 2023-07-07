@@ -8,10 +8,10 @@ import { AnimatedSprite } from "./animatedSprite";
 
 export interface CanAnimate {
     render(ctx: CanvasRenderingContext2D, frame: number): void;
-    moveBy(x: number, y: number): void;
-    moveBy(v: Vector2): void;
-    resizeBy(x: number, y: number): void;
-    resizeBy(v: Vector2): void;
+    moveOffsetBy(x: number, y: number): void;
+    moveOffsetBy(v: Vector2): void;
+    resizeOffsetBy(x: number, y: number): void;
+    resizeOffsetBy(v: Vector2): void;
 }
 
 export abstract class GameAnimation extends StateManager<GameState> {

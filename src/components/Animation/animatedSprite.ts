@@ -13,15 +13,15 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
 
     fps;
 
-    onPlay: () => Promise<void>;
-    onFinish: () => Promise<void>;
+    onPlay: (as: AnimatedSprite) => Promise<void>;
+    onFinish: (as: AnimatedSprite) => Promise<void>;
     constructor(
         id: string,
         bounds: RectangleBounds,
         sprites: Sprite[],
         frameDelays: number[] = [],
-        onPlay: () => Promise<void>,
-        onFinish: () => Promise<void>,
+        onPlay: (as: AnimatedSprite) => Promise<void>,
+        onFinish: (as: AnimatedSprite) => Promise<void>,
         fps = 60
     ) {
         super(id, bounds);
@@ -43,10 +43,18 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     async render(ctx: CanvasRenderingContext2D) {
         if (this.frame > this.sprites.length - 1) return;
         const sprite = this.sprites[this.frame];
-        sprite.moveTo(this.bounds);
+        await sprite.cacheImage(undefined, true);
+        sprite.moveTo(
+            new RectangleBounds(
+                this.bounds.x + this.offsetXY[0],
+                this.bounds.y + this.offsetXY[1],
+                this.bounds.width + this.offsetSize[0],
+                this.bounds.height + this.offsetSize[1]
+            )
+        );
         sprite.render(ctx);
     }
-    moveBy(x: number | Vector2, y?: number) {
+    moveOffsetBy(x: number | Vector2, y?: number) {
         if (Array.isArray(x) && typeof y === "undefined") {
             this.offsetXY[0] += x[0];
             this.offsetXY[1] += x[1];
@@ -55,7 +63,7 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
             this.offsetXY[1] += x;
         }
     }
-    resizeBy(widthOrSize: number | Vector2, height?: number) {
+    resizeOffsetBy(widthOrSize: number | Vector2, height?: number) {
         if (Array.isArray(widthOrSize) && typeof height === "undefined") {
             this.offsetSize[0] += widthOrSize[0];
             this.offsetSize[1] += widthOrSize[1];
@@ -69,7 +77,7 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     }
     async play() {
         this.playing = true;
-        await this.onPlay();
+        await this.onPlay(this);
     }
     private playing = false;
     stop() {
@@ -99,9 +107,9 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
 
             this.timeElapsed += time;
 
-            if (this.frame >= this.sprites.length - 1) {
+            if (this.frame > this.sprites.length - 1) {
                 this.stop();
-                await this.onFinish();
+                await this.onFinish(this);
             }
         }
     }

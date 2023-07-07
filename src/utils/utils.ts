@@ -255,7 +255,7 @@ export interface Renderable {
 
 // #region
 
-export const nonce: (...a: any[]) => any = () => {};
-export const asyncNonce: (...a: any[]) => Promise<any> = async () => {};
+export const noop: (...a: any[]) => any = () => {};
+export const asyncNoop: (...a: any[]) => Promise<any> = async () => {};
 
 //#endregion

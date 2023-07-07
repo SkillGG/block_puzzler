@@ -15,11 +15,16 @@ import { GameOptions } from "@/options";
 import { RainbowTile } from "../Tile/rainbowTile";
 import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { GameTile } from "../Tile/gameTile";
+
+type alignableVector_2 = Record<"x" | "y", "center" | number>;
 
 export class PlayMap implements Updateable {
     gameOver = false;
 
-    private pos: Vector_2;
+    private _pos: Vector_2 = { x: 0, y: 0 };
+
+    private pos: alignableVector_2;
 
     private _tiles: Tile[][] = [];
 
@@ -78,19 +83,29 @@ export class PlayMap implements Updateable {
         strokeWidth: 2,
     });
 
-    constructor(pos: Vector_2, playfield: Playfield) {
+    constructor(pos: alignableVector_2, playfield: Playfield) {
         this.pos = pos;
         this.playfield = playfield;
     }
 
     createAMap(cols: number, rows: number) {
+        this._pos = {
+            x:
+                this.pos.x === "center"
+                    ? Game.getWidth() / 2 - (cols * TileSize) / 2
+                    : this.pos.x,
+            y:
+                this.pos.y === "center"
+                    ? Game.getHeight() / 2 - (rows * TileSize) / 2
+                    : this.pos.y,
+        };
         for (let row = 0; row < rows; row++) {
             const tileRow: Tile[] = [];
             for (let col = 0; col < cols; col++) {
                 tileRow.push(
-                    new Tile(
+                    new GameTile(
                         `tile${col + cols * row}`,
-                        this.pos,
+                        this._pos,
                         [row, col],
                         [TileSize, TileSize]
                     )
@@ -103,14 +118,14 @@ export class PlayMap implements Updateable {
         const rowWidth = this.tiles[0][0].bounds.width * cols;
         const newLeft = Game.getWidth() / 2 - rowWidth / 2;
         this.eachTile((t) => {
-            t.moveBy([newLeft, 0]);
+            t.moveOffsetBy([newLeft, 0]);
         });
         this.border.bounds.setPosition(this._tiles[0][0].bounds.getPosition());
         this.border.bounds.setSize([
             this._tiles[0].reduce((p, n) => p + n.bounds.width, 0),
             this._tiles.reduce((p, n) => p + n[0].bounds.height, 0),
         ]);
-        this.getRandomTile().setColor(Playfield.randomTileColor());
+        this.getRandomTile().color = Playfield.randomTileColor();
         this.randomizeTileValues(Playfield.randomTileColor_EASY);
         this.playable = true;
     }
@@ -153,20 +168,20 @@ export class PlayMap implements Updateable {
                 this.numberOfMoves
             );
             if (randomColor === "rainbow") {
-                t.transmutate(
-                    new RainbowTile(
-                        t.id + "rainbow",
-                        t.originalAnchor,
-                        [t.coords.col, t.coords.row],
-                        t.size
-                    )
-                );
+                // t.transmutate(
+                //     new RainbowTile(
+                //         t.id + "rainbow",
+                //         t.originalAnchor,
+                //         [t.coords.col, t.coords.row],
+                //         t.size
+                //     )
+                // );
             } else if (
                 randomColor !== TileColor.NONE &&
                 t.color !== randomColor
             ) {
                 // LogI("swapping colors for tile", t.id, "to ", randomColor);
-                t.setColor(randomColor);
+                t.color = randomColor;
                 coloredTiles++;
             }
         });
@@ -243,9 +258,10 @@ export class PlayMap implements Updateable {
             },
             () => {
                 tile2.color = startColor;
-                this.getRandomTileWhich(
+                const randomTile = this.getRandomTileWhich(
                     (t) => t.color === TileColor.NONE
-                )?.setColor(Playfield.randomTileColor());
+                );
+                if (randomTile) randomTile.color = Playfield.randomTileColor();
                 this.randomizeTileValues(Playfield.randomTileColor_EASY);
                 this.numberOfMoves++;
                 this.lock = false;
@@ -636,8 +652,9 @@ export class PlayMap implements Updateable {
 
     setHoveredTile() {
         const changeHovered = (t: Tile | null) => {
+            this.hoveredTile?.hoverOut();
+            t?.hoverIn();
             this.hoveredTile = t;
-
             this.drawHoverPath();
         };
 

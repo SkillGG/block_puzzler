@@ -1,9 +1,8 @@
 import { PathBlock, Tile } from "@components/Playfield/Tile/tile";
 import { GameAnimation } from "../animation";
 import { AnimatableTile } from "../animatedTile";
-import { Vector2, lerp } from "@utils";
+import { Vector2 } from "@utils";
 import { AnimatedSprite } from "../animatedSprite";
-import { Game } from "@/game";
 
 export namespace MovingAnimation {
     export const ID = "moving";
@@ -37,7 +36,6 @@ export namespace MovingAnimation {
         pathLines: PathLine[] = [];
 
         tiles: AnimatableTile[];
-        sprites: AnimatedSprite[] = [];
 
         totalDistance: number = 0;
 
@@ -50,7 +48,12 @@ export namespace MovingAnimation {
             super(id, end);
             this.frame = 0;
             this.tiles = path.map((q) => {
-                return new AnimatableTile(id + "_tile_" + q.id, q);
+                return new AnimatableTile(
+                    id + "_tile_" + q.id,
+                    q,
+                    undefined,
+                    100
+                );
             });
             this.pathLines = [];
             this.calcPathLines(path);
@@ -60,11 +63,7 @@ export namespace MovingAnimation {
             this.tiles = [this.tiles[0]];
             start();
         }
-        async render(ctx: CanvasRenderingContext2D) {
-            for (const t of this.tiles) {
-                t.render(ctx);
-            }
-        }
+        async render() {}
 
         calcPathLines(tiles: Tile[]) {
             const lines: Vector2[][] = [];
@@ -149,7 +148,7 @@ export namespace MovingAnimation {
         async update(dT: number) {
             this.frame++;
 
-            this.traveled = this.traveled + dT * 2;
+            this.traveled = this.traveled + dT * 1;
 
             if (this.totalDistance - this.traveled < 3)
                 this.traveled = this.totalDistance;

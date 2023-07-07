@@ -1,21 +1,22 @@
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
-import b1 from "./assets/Break.png";
-import breakAnimData from "./assets/Break.json";
-import { Vector2 } from "@utils";
-import { Tile, TileColor, TileSize } from "@components/Playfield/Tile/tile";
-import { PixellAnimData } from "../utils";
+import spriteSet from "./assets/pika.png";
+// import breakAnimData from "./assets/Break.json";
+import { Vector2, Vector_2, randomInt } from "@utils";
+import { Tile, TileSize } from "@components/Playfield/Tile/tile";
+// import { PixellAnimData } from "../utils";
 import { AnimatedSprite } from "../animatedSprite";
 import { GameAnimation } from "../animation";
 import { Texture } from "@primitives/Texture/texture";
 import {
-    SpriteAnimationLoader,
+    // SpriteAnimationLoaderFunction,
     SpriteLoader,
+    SpriteLoaderFunction,
 } from "@components/Primitives/Sprite/SpriteLoader";
 import { Sprite } from "@components/Primitives/Sprite/Sprite";
 import { LoadedTexture } from "@components/Primitives/Texture/loadedTexture";
 
-const breakAnimationJSON = breakAnimData as PixellAnimData;
+// const breakAnimationJSON = breakAnimData as PixellAnimData;
 
 export namespace BreakingAnimation {
     export const ID = "breaking";
@@ -24,42 +25,38 @@ export namespace BreakingAnimation {
 
         private static texture: Texture = new Texture();
 
-        static loadBreakingSprites: SpriteAnimationLoader = async () => {
-            const url = b1;
+        static loadSprites: SpriteLoaderFunction = async () => {
+            const url = spriteSet;
             if (!this.texture.isLoaded) await this.texture.load(url);
             const lT = new LoadedTexture(this.texture, ID + "_anim");
-            const sprites: Sprite[] = [];
-            for (const frame of Object.values(breakAnimationJSON.frames)) {
-                const { x, y, w, h } = frame.frame;
-                const spr = new Sprite(lT, new RectangleBounds(x, y, w, h));
-                sprites.push(spr);
-            }
-            return sprites;
+            return new Sprite(lT, {
+                source: new RectangleBounds(
+                    0,
+                    0,
+                    this.texture.width,
+                    this.texture.height
+                ),
+            });
         };
 
         constructor(
             id: string,
             x: number,
             y: number,
-            options: { tint: TileColor },
             onfinish: () => Promise<void>
         ) {
-            const sprites = SpriteLoader.getAnimationSprites(ID);
+            const sprites = SpriteLoader.getSprite(ID);
             super(
                 id,
                 new RectangleBounds(
                     x,
                     y,
-                    sprite.breakFrameSize,
-                    sprite.breakFrameSize
+                    sprite.texture.width,
+                    sprite.texture.height
                 ),
-                sprites,
+                [sprites],
                 [],
-                async () => {
-                    for (const sprite of sprites) {
-                        await sprite.setTint(options.tint);
-                    }
-                },
+                async () => {},
                 onfinish,
                 60 // fps
             );
@@ -68,37 +65,57 @@ export namespace BreakingAnimation {
 
     export class animation extends GameAnimation {
         origin: Vector2;
-        tint: TileColor;
+
+        sprites: { sprite: AnimatedSprite; vel: Vector_2 }[] = [];
+
         constructor(id: string, end: (id: string) => void, ltTile: Tile) {
+            console.log("creating new destory animation");
             super(id, end);
             this.origin = [...ltTile.bounds.getPosition()];
-            this.tint = ltTile.color;
-            this.frame = 0;
+            const velocities: Vector2[] = [
+                [randomInt(-4, 4), randomInt(-10, -1)],
+                [randomInt(-4, 4), randomInt(-10, -1)],
+                [randomInt(-4, 4), randomInt(-10, -1)],
+                [randomInt(-4, 4), randomInt(-10, -1)],
+                [randomInt(-4, 4), randomInt(-10, -1)],
+                [randomInt(-4, 4), randomInt(-10, -1)],
+            ];
+            this.sprites = velocities.map((vel, i) => {
+                return {
+                    sprite: new sprite(
+                        id + "_" + i,
+                        ltTile.bounds.x,
+                        ltTile.bounds.y,
+                        async () => {}
+                    ),
+                    vel: { x: vel[0], y: vel[1] },
+                };
+            });
+            this.tiles = this.sprites.map(({ sprite }) => sprite);
         }
-        async render(ctx: CanvasRenderingContext2D) {
-            console.log("rendering animation", this.id);
-            for (const t of this.tiles) {
-                t.render(ctx);
-            }
-        }
-        async update() {
+        async render() {}
+
+        async update(dT: number) {
             this.frame++;
             const frame = this.frame;
-            if (frame === 1) {
-                const newpos = this.origin;
-                let newid = "breaking_anim_" + this.id;
-                const animation = new sprite(
-                    newid,
-                    newpos[0] - 5,
-                    newpos[1] - 5,
-                    { tint: this.tint },
-                    async () => {
-                        this.end();
-                    }
+            const dS = (dT / 1000) * 60;
+            for (let i = 0; i < this.sprites.length; i++) {
+                this.sprites[i].vel.y += dS * 0.5;
+                this.sprites[i].sprite.bounds.setPosition(
+                    this.sprites[i].sprite.bounds.x +
+                        dS * this.sprites[i].vel.x,
+                    this.sprites[i].sprite.bounds.y + dS * this.sprites[i].vel.y
                 );
-                this.tiles.push(animation);
-                this.registerObject(animation);
-                await animation.play();
+                if (this.sprites[i].sprite.bounds.y > 500 + 50) {
+                    this.removeObject(this.sprites[i].sprite);
+                    this.sprites = this.sprites.filter(
+                        (x) => x !== this.sprites[i]
+                    );
+                }
+            }
+
+            if (this.sprites.length <= 0) {
+                this.end();
             }
         }
     }

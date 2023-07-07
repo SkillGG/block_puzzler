@@ -120,3 +120,9 @@ body {
 .log[data-type="error"] {
   color: red;
 }
+h3 {
+  display: block;
+  position: absolute;
+  top: 50%;
+  height: 50%;
+}

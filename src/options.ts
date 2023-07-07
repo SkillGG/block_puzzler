@@ -33,7 +33,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         super(OptionsStateManager.DefaultID, manager, state);
         this.pointsLabel = new Label(
             "pointsLabel",
-            new RectangleBounds(0, 0, Game.getWidth() - 25, 0),
+            new RectangleBounds(0, 10, Game.getWidth() - 25, 0),
             "",
             {
                 label: { align: "right", font: "normal 1em auto" },
@@ -41,7 +41,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         );
         this.movesLabel = new Label(
             "movesLabel",
-            new RectangleBounds(0, 20, Game.getWidth() - 25, 0),
+            new RectangleBounds(0, 30, Game.getWidth() - 25, 0),
             "",
             {
                 label: { align: "right", font: "normal 1em auto" },
