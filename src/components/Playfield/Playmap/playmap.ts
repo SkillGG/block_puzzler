@@ -717,6 +717,7 @@ export class PlayMap implements Updateable {
                 this.swapTiles(tile1, tile2);
                 this.deselectTile(this.getTile(tile1));
                 this.deselectTile(this.getTile(tile2));
+                Game.input.forceTouchUp();
                 this.clearPath();
             } else {
                 LogE("Cannot move here!");
@@ -764,12 +765,10 @@ export class PlayMap implements Updateable {
                     }
                 } else {
                     if (Game.input.hasTouchClicked()) {
-                        console.log(this.hoveredTile);
                         if (
                             this.dragging &&
                             this.considerDrag(this.hoveredTile.coords)
                         ) {
-                            console.log("released drag");
                             if (this.selectedTile) {
                                 // released drag
                                 const osm = GameOptions.instance;

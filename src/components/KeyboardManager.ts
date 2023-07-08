@@ -170,6 +170,11 @@ export class InputManager implements Updateable {
         }
         this.mouseInputScale = this.getMouseInputScaleFactors();
     }
+    forceTouchUp() {
+        if (this.pointerType === "touch") {
+            this._mousePosition = this._prevMousePostiion = [0, 0];
+        }
+    }
     async update() {
         this.pointerStateChanged = false;
         this.pointerButtonsClicked = new Set();
