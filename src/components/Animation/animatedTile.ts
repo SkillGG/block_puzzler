@@ -1,7 +1,7 @@
 import { Tile, TileColor, TileEvents } from "@components/Playfield/Tile/tile";
 import { CanAnimate } from "./animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
-import { Vector2, noop, colorDataToString, colorToRGBA } from "@utils";
+import { Vector2, noop } from "@utils";
 import { Game } from "@/game";
 
 export class AnimatableTile extends Tile implements CanAnimate {

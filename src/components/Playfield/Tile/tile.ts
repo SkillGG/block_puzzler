@@ -2,7 +2,7 @@ import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Sprite } from "@primitives/Sprite/Sprite";
 import { SpriteLoader } from "@primitives/Sprite/SpriteLoader";
-import { Vector2, Vector_2, noop } from "@utils";
+import { Vector2, Vector_2 } from "@utils";
 
 export enum TileColor {
     NONE = "transparent",
@@ -287,5 +287,5 @@ export class Tile extends BoundedGameObject {
         console.log("leaving", this.id);
     }
 
-    async update(dT: number) {}
+    async update(_: number) {}
 }

@@ -97,7 +97,6 @@ export namespace BreakingAnimation {
 
         async update(dT: number) {
             this.frame++;
-            const frame = this.frame;
             const dS = (dT / 1000) * 60;
             for (let i = 0; i < this.sprites.length; i++) {
                 this.sprites[i].vel.y += dS * 0.5;

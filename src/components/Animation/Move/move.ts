@@ -2,7 +2,6 @@ import { PathBlock, Tile } from "@components/Playfield/Tile/tile";
 import { GameAnimation } from "../animation";
 import { AnimatableTile } from "../animatedTile";
 import { Vector2 } from "@utils";
-import { AnimatedSprite } from "../animatedSprite";
 
 export namespace MovingAnimation {
     export const ID = "moving";

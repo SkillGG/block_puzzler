@@ -12,7 +12,7 @@ import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
 import { Astar, AstarPath, Grid } from "@astar";
 import { GameOptions } from "@/options";
-import { RainbowTile } from "../Tile/rainbowTile";
+
 import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { GameTile } from "../Tile/gameTile";
