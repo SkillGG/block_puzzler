@@ -43,7 +43,7 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     async render(ctx: CanvasRenderingContext2D) {
         if (this.frame > this.sprites.length - 1) return;
         const sprite = this.sprites[this.frame];
-        await sprite.cacheImage(undefined, true);
+        if (sprite.staleCache) await sprite.cacheImage(undefined, true);
         sprite.moveTo(
             new RectangleBounds(
                 this.bounds.x + this.offsetXY[0],
@@ -52,7 +52,7 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
                 this.bounds.height + this.offsetSize[1]
             )
         );
-        sprite.render(ctx);
+        await sprite.render(ctx);
     }
     moveOffsetBy(x: number | Vector2, y?: number) {
         if (Array.isArray(x) && typeof y === "undefined") {

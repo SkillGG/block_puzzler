@@ -92,7 +92,6 @@ export class ObjectManager<AvailableStates extends string>
         if (!sObjs) return null;
         if (sObjs.find((o) => obj.id === o.id)) {
             console.error("Object with that id already exists in this state!");
-            console.log(obj);
             return null;
         }
         sObjs.push(obj);

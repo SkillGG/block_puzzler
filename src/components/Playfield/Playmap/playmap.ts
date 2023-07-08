@@ -828,30 +828,21 @@ export class PlayMap implements Updateable {
                                 }
                             }
                         } else {
-                            console.log("clicked");
                             // just clicked
                             if (this.selectedTile) {
                                 if (this.hoveredTile.color !== TileColor.NONE) {
                                     // clicked on color
-                                    console.log(this.hoveredTile);
                                     if (
                                         this.hoveredTile !==
                                         this.getTile(this.selectedTile)
                                     ) {
-                                        console.log(
-                                            "Clicked on non-selected",
-                                            this.confirmPlacement,
-                                            this.selectedWithDrag
-                                        );
                                         let done = false;
                                         const cPC = this.confirmPlacement;
                                         if (cPC && this.selectedWithDrag) {
-                                            console.log("Checking neighbours");
                                             const neighs = this.getNeighbours(
                                                 this.hoveredTile.coords,
                                                 0
                                             );
-                                            console.log("Neighbours", neighs);
                                             if (
                                                 neighs.find(
                                                     (x) =>
@@ -914,7 +905,6 @@ export class PlayMap implements Updateable {
                         this.startedNewDrag = false;
                     } else if (Game.input.hasPressedTouch()) {
                         // started dragging
-                        console.log("SDrag");
                         this.dragging = true;
                         this.dragStartCoords = this.hoveredTile.coords;
                         if (!this.selectedTile) {

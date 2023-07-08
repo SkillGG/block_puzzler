@@ -278,13 +278,11 @@ export class Tile extends BoundedGameObject {
     hoverIn() {
         this.isHovered = true;
         this.onenter();
-        console.log("entering", this.id);
     }
 
     hoverOut() {
         this.isHovered = false;
         this.onleave();
-        console.log("leaving", this.id);
     }
 
     async update(_: number) {}

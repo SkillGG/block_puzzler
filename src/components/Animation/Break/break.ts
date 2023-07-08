@@ -69,7 +69,6 @@ export namespace BreakingAnimation {
         sprites: { sprite: AnimatedSprite; vel: Vector_2 }[] = [];
 
         constructor(id: string, end: (id: string) => void, ltTile: Tile) {
-            console.log("creating new destory animation");
             super(id, end);
             this.origin = [...ltTile.bounds.getPosition()];
             const velocities: Vector2[] = [

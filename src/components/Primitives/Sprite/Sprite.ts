@@ -72,6 +72,7 @@ export class Sprite implements Renderable {
                 colorDataToString(colorToRGBA(options?.tint)) || "transparent";
             this.cachedImage = new Image();
             if (options?.cacheTints) this.recache(options.cacheTints);
+            else this.cacheImage(this.tint, true);
             this.staleCache = false;
             this.cachedImage.onerror = () => (this.staleCache = true);
         } else {
@@ -89,12 +90,13 @@ export class Sprite implements Renderable {
             await this.cacheImage(this.tint, force);
         }
         this.tint = pTint;
-        this.staleCache = true;
+        this.staleCache = false;
     }
     async cacheImage(tint?: string, force: boolean = false) {
         const imgFromCache = Sprite.getImageFromCache(this.getCacheID(tint));
         if (imgFromCache && !force) {
-            this.cachedImage = imgFromCache;
+            if (this.cachedImage !== imgFromCache)
+                this.cachedImage = imgFromCache;
         } else {
             const textureImg = await this.texture.toImage(
                 this.sourceBounds.x,

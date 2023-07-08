@@ -68,13 +68,11 @@ export class Playfield extends StateManager<GameState> {
     };
 
     playDestroyAnimation(c: Tile[]) {
-        console.log("Adding destroy animation");
         const animNum = this.getFreeAnimationID();
         const animID = "break" + animNum;
         const anim = new BreakingAnimation.animation(
             animID,
             () => {
-                console.log("removing animation", animID);
                 this.manager.removeStateManager(animID);
                 this.animations = this.animations.filter((a) => a !== animNum);
             },
