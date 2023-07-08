@@ -1,4 +1,4 @@
-import { $ } from "@utils/utils";
+import { $ } from "@utils";
 
 export enum LogType {
     INFO = "info",

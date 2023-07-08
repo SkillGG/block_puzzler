@@ -1,12 +1,12 @@
-import { StateManager } from "@component/StateManager";
-import { ObjectManager } from "@component/ObjectManager";
+import { StateManager } from "@components/StateManager";
+import { ObjectManager } from "@components/ObjectManager";
 import { GameState } from "./main";
-import { Label } from "@component/Primitives/Label/Label";
-import { RectangleBounds } from "@component/Primitives/Rectangle/RectangleBounds";
+import { Label } from "@components/Primitives/Label/Label";
+import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Game } from "./game";
-import { $ } from "@utils/utils";
-import { Playfield } from "@component/Playfield/playfield";
-import { Button } from "@component/Primitives/Button/button";
+import { $ } from "@utils";
+import { Playfield } from "@components/Playfield/playfield";
+import { Button } from "@components/Primitives/Button/Button";
 
 declare global {
     interface Window {
@@ -33,7 +33,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         super(OptionsStateManager.DefaultID, manager, state);
         this.pointsLabel = new Label(
             "pointsLabel",
-            new RectangleBounds(0, 0, Game.getWidth() - 25, 0),
+            new RectangleBounds(0, 10, Game.getWidth() - 25, 0),
             "",
             {
                 label: { align: "right", font: "normal 1em auto" },
@@ -41,7 +41,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         );
         this.movesLabel = new Label(
             "movesLabel",
-            new RectangleBounds(0, 20, Game.getWidth() - 25, 0),
+            new RectangleBounds(0, 30, Game.getWidth() - 25, 0),
             "",
             {
                 label: { align: "right", font: "normal 1em auto" },
@@ -71,11 +71,16 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
     refreshUI() {
         this.pointsLabel.text = `Points: ${this.parent.points}`;
         this.movesLabel.text = `Moves: ${this.parent.moves}`;
-        if (Game.input.pointerType === "touch")
+        if (Game.input.pointerType === "touch") {
             this.dragLabel.label.text = this.parent.autoPlaceAfterDrag
                 ? "DragConfirm: false"
                 : "DragConfirm: true";
-        else this.dragLabel.label.text = "";
+            this.dragLabel.label.style.textColor = "black";
+            this.dragLabel.label.border.style.strokeColor = "black";
+        } else {
+            this.dragLabel.label.style.textColor = "transparent";
+            this.dragLabel.label.border.style.strokeColor = "transparent";
+        }
     }
     removeObjects(): void {
         if (!this.areRegistered) return;
@@ -91,7 +96,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
         this.registerObject(this.movesLabel);
         this.areRegistered = true;
     }
-    update(): void {
+    async update() {
         this.refreshUI();
     }
 }
@@ -106,7 +111,7 @@ export class GameOptions<T extends string> {
     stateManager: OptionsStateManager<T> | null = null;
     points: number = 0;
 
-    autoPlaceAfterDrag: boolean = false;
+    autoPlaceAfterDrag: boolean = true;
 
     get moves() {
         const osm = Game.instance?.manager.getStateManager<Playfield>(
@@ -187,7 +192,6 @@ export class GameOptions<T extends string> {
     }
 
     addPoints(pts: number) {
-        console.log("Adding points!");
         this.points += pts;
     }
     createManager(manager: ObjectManager<T>, state: T) {

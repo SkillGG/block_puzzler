@@ -84,6 +84,7 @@ body {
   #gameBox canvas {
     display: block;
     width: 100%;
+    margin-block: 0;
     max-width: 600px;
   }
 }
@@ -118,4 +119,10 @@ body {
 }
 .log[data-type="error"] {
   color: red;
+}
+h3 {
+  display: block;
+  position: absolute;
+  top: 50%;
+  height: 50%;
 }

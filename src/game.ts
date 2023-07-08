@@ -1,9 +1,9 @@
 import { DevConsole } from "@/console";
-import { InputManager } from "@component/KeyboardManager";
-import { ObjectManager } from "@component/ObjectManager";
-import { Renderable, Updateable } from "@component/interfaces";
+import { InputManager } from "@components/KeyboardManager";
+import { ObjectManager } from "@components/ObjectManager";
+import { Renderable, Updateable } from "@utils";
 import { GameOptions } from "@/options";
-import { Vector2 } from "@utils/utils";
+import { Vector2 } from "@utils";
 import { GameState } from "@/main";
 
 export const normalizeVector2RelativeToElement = (
@@ -39,18 +39,12 @@ export const CTXSavedProperties: Set<keyof CanvasRenderingContext2D> = new Set([
     "imageSmoothingQuality",
 ]);
 
-export const getCTXProperties = (ctx: CanvasRenderingContext2D) => {
-    return Object.fromEntries(
-        [...CTXSavedProperties].map((prop) => {
-            return [prop, ctx[prop]];
-        })
-    ) as Record<keyof CanvasRenderingContext2D, any>;
-};
-
 export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
 {
+    static readonly desiredFPS = 60;
+
     canvasContext: CanvasRenderingContext2D;
     running: boolean = false;
     manager: ObjectManager<T>;
@@ -85,8 +79,6 @@ export class Game<T extends string>
         return [Game.getWidth(), Game.getHeight()];
     }
 
-    static defaultCTX: Record<keyof CanvasRenderingContext2D, any>;
-
     constructor(
         devConsole: DevConsole,
         options: GameOptions<T>,
@@ -105,7 +97,6 @@ export class Game<T extends string>
         this.canvasContext = cC;
         this.width = this.gameWidth;
         this.height = this.gameHeight;
-        Game.defaultCTX = getCTXProperties(cC);
         Game.instance = this;
     }
     getComputedStyle() {
@@ -122,9 +113,6 @@ export class Game<T extends string>
     }
     stop() {
         this.running = false;
-    }
-    addDrawCall(drawFn: (ctx: CanvasRenderingContext2D) => void) {
-        drawFn(this.canvasContext);
     }
     checkUI() {
         if (this.options.stateManager) {
@@ -143,15 +131,15 @@ export class Game<T extends string>
             }
         }
     }
-    update(timeStep: number) {
-        this.manager.update(timeStep);
-        Game.input.update();
-        this.options.refreshUI();
+    async update(timeStep: number) {
+        await this.manager.update(timeStep);
+        await Game.input.update();
+        await this.options.refreshUI();
     }
-    render() {
-        this.checkUI();
+    async render() {
+        await this.checkUI();
         this.canvasContext.clearRect(0, 0, this.width, this.height);
-        this.manager.render(this.canvasContext);
+        await this.manager.render(this.canvasContext);
     }
 }
 customElements.define("game-", Game, { extends: "canvas" });
