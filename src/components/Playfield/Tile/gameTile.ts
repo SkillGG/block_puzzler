@@ -84,6 +84,17 @@ export class GameTile extends AnimatableTile {
 
         if (this.color !== TileColor.NONE) ctx.stroke();
 
+        if (
+            this.willBecome !== TileColor.NONE &&
+            this.color === TileColor.NONE
+        ) {
+            ctx.beginPath();
+            ctx.fillStyle = this.willBecome;
+            ctx.arc(x + w / 2, y + h / 2, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        }
+
         await this.renderPath(ctx);
     }
     async update(dT: number) {

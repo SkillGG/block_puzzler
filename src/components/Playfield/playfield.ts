@@ -46,17 +46,24 @@ export class Playfield extends StateManager<GameState> {
             // start randomizing
         }
 
+        let tileIndex = _a.flat(1).indexOf(t);
+        if (tileIndex < 0) tileIndex = 99;
+
         if (t.color !== TileColor.NONE) return t.color;
         if (n >= 5) return TileColor.NONE;
 
-        // return "random";
-
-        return getRandomWeightedNumber(
-            Object.values(TileColor).map((color) => {
-                if (color === TileColor.NONE) return [80, color];
-                return [0.05 * moveNum, color];
-            })
+        const weightMap: [number, TileColor][] = Object.values(TileColor).map(
+            (color) => {
+                if (color === TileColor.NONE)
+                    return [80 - Math.min(5 * tileIndex, 63), color];
+                const points = GameOptions.instance?.points;
+                return [0.05 * (points ? points : 10), color];
+            }
         );
+
+        const randomColor = getRandomWeightedNumber<TileColor>(weightMap);
+
+        return randomColor;
     };
 
     animations: number[] = [];

@@ -52,6 +52,8 @@ export class Tile extends BoundedGameObject {
 
     _color: TileColor = TileColor.NONE;
 
+    willBecome: TileColor = TileColor.NONE;
+
     get color() {
         return this._color;
     }
@@ -140,6 +142,16 @@ export class Tile extends BoundedGameObject {
             this.coords = coords;
         }
         this.applyPositionChange();
+    }
+
+    isOn(t: TileCoords): boolean;
+    isOn(c: number, r: number): boolean;
+    isOn(col: number | TileCoords, row?: number) {
+        if (typeof col === "number" && typeof row === "number")
+            return this.coords.col === col && this.coords.row === row;
+        if (typeof col === "object")
+            return this.coords.col === col.col && this.coords.row === col.row;
+        return false;
     }
 
     protected applyPositionChange() {
@@ -241,7 +253,7 @@ export class Tile extends BoundedGameObject {
         const { x, y, width: w, height: h } = this.bounds;
         if (this.sprite) {
             this.sprite.moveTo(this.bounds);
-            this.sprite.render(ctx);
+            await this.sprite.render(ctx);
         } else {
             ctx.fillStyle = this.color;
             ctx.strokeStyle = "black";
@@ -267,9 +279,15 @@ export class Tile extends BoundedGameObject {
         }
         if (this.color !== TileColor.NONE) ctx.stroke();
 
-        if (this.color !== TileColor.NONE && this.isHovered) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(x + w / 2 - 5, y + h / 2 - 5, 10, 10);
+        if (
+            this.willBecome !== TileColor.NONE &&
+            this.color === TileColor.NONE
+        ) {
+            ctx.beginPath();
+            ctx.fillStyle = this.willBecome;
+            ctx.arc(x + w / 2, y + h / 2, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
         }
 
         await this.renderPath(ctx);
