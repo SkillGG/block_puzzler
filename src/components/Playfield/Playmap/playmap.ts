@@ -269,6 +269,8 @@ export class PlayMap implements Updateable {
     swapTiles(t1: TileCoords, t2: TileCoords) {
         const tile1 = this.getTile(t1);
         const tile2 = this.getTile(t2);
+        tile2.willBecome = tile1.willBecome;
+        tile1.willBecome = TileColor.NONE;
         if (!tile1) throw `Tile not found ${t1}`;
         if (!tile2) throw `Tile not found ${t2}`;
 
@@ -285,11 +287,13 @@ export class PlayMap implements Updateable {
                 this.lock = false;
                 const removed = this.removeClusteredTiles();
                 if (!removed) this.applyColorChanges();
+                this.removeClusteredTiles();
                 const endGame = this.checkEndGame();
                 if (endGame) {
                     this.gameOver = true;
                     this.playfield.gameOver();
                 } else {
+                    tile2.willBecome = TileColor.NONE;
                     if (!removed)
                         this.randomizeTileValues(
                             Playfield.randomTileColor_EASY
