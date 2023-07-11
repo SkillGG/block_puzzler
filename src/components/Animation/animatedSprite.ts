@@ -3,6 +3,7 @@ import { CanAnimate } from "@animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Vector2 } from "@utils";
 import { Sprite } from "@primitives/Sprite/Sprite";
+import { oANIMATEDSPRITE_Z } from "@/utils/zLayers";
 
 export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     sprites: Sprite[];
@@ -22,9 +23,10 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
         frameDelays: number[] = [],
         onPlay: (as: AnimatedSprite) => Promise<void>,
         onFinish: (as: AnimatedSprite) => Promise<void>,
-        fps = 60
+        fps = 60,
+        zIndex = oANIMATEDSPRITE_Z
     ) {
-        super(id, bounds);
+        super(id, bounds, zIndex);
         this.sprites = sprites;
         this.frameDelays = frameDelays;
         while (frameDelays.length < sprites.length) {

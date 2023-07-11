@@ -3,18 +3,18 @@ import { CanAnimate } from "./animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Vector2, noop } from "@utils";
 import { Game } from "@/game";
+import { oANIMATEDTILE_Z } from "@/utils/zLayers";
 
 export class AnimatableTile extends Tile implements CanAnimate {
     constructor(
         animId: string,
         t: Tile,
         events: TileEvents = { onenter: noop, onleave: noop },
-        zIndex?: number
+        zIndex: number = oANIMATEDTILE_Z
     ) {
-        super(t.id + `_anim${animId}`, t, { events });
+        super(t.id + `_anim${animId}`, t, { events, zIndex });
         this.color = t.color;
         this.bounds = new RectangleBounds(t.bounds);
-        this.zIndex = zIndex || 0;
     }
     frame = 0;
     fps = Game.desiredFPS;

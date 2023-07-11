@@ -119,6 +119,9 @@ export class InputManager implements Updateable {
             this.pointerType = e.pointerType;
         } else if (e.pointerType === "touch") {
             this.pointerType = e.pointerType;
+            window.document.documentElement
+                .requestFullscreen()
+                .catch(console.error);
         }
     }
     handleKeyDown(e: KeyboardEvent) {

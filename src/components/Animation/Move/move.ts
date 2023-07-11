@@ -2,6 +2,7 @@ import { PathBlock, Tile } from "@components/Playfield/Tile/tile";
 import { GameAnimation } from "../animation";
 import { AnimatableTile } from "../animatedTile";
 import { Vector2 } from "@utils";
+import { aMOVE_Z } from "@/utils/zLayers";
 
 export namespace MovingAnimation {
     export const ID = "moving";
@@ -51,7 +52,7 @@ export namespace MovingAnimation {
                     id + "_tile_" + q.id,
                     q,
                     undefined,
-                    100
+                    aMOVE_Z
                 );
             });
             this.pathLines = [];

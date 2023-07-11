@@ -11,6 +11,7 @@ import spriteSet from "./assets/Hover.png";
 import frameData from "./assets/Hover.json";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { PixellAnimData } from "../utils";
+import { aHOVER_Z } from "@/utils/zLayers";
 
 const hoverAnimationData: PixellAnimData = frameData;
 
@@ -54,7 +55,8 @@ export namespace HoverAnimation {
                     as.frame = 0;
                     onfinish(as);
                 },
-                fps
+                fps,
+                aHOVER_Z
             );
         }
 

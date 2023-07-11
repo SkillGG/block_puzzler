@@ -7,6 +7,7 @@ import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { StateManager } from "@components/StateManager";
 import { Playfield } from "@components/Playfield/playfield";
 import { LogI } from "@/console";
+import { mMENU_Z } from "@/utils/zLayers";
 
 export class GameMenu extends StateManager<GameState> {
     menuLabel: Label;
@@ -18,7 +19,7 @@ export class GameMenu extends StateManager<GameState> {
     get defaultID() {
         return GameMenu.DefaultID;
     }
-    constructor(manager: ObjectManager<GameState>) {
+    constructor(manager: ObjectManager<GameState>, zIndex = mMENU_Z) {
         super(GameMenu.DefaultID, manager, GameState.MENU);
 
         const buttonStyle: LabelWithBorderStyle = {
@@ -39,7 +40,8 @@ export class GameMenu extends StateManager<GameState> {
             "menu_label",
             new RectangleBounds(0, 0, Game.WIDTH, 100),
             "BlockPuzzler",
-            labelStyle
+            labelStyle,
+            zIndex
         );
 
         this.startButton = new Button(
@@ -60,7 +62,8 @@ export class GameMenu extends StateManager<GameState> {
                 },
             },
             "START",
-            buttonStyle
+            buttonStyle,
+            zIndex
         );
     }
     onClickStart(_ev: ButtonClickEvent) {

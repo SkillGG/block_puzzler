@@ -8,6 +8,7 @@ import { GameSettings } from "@/UI";
 import { GameOverScreen } from "./gameOverScreen";
 import { BreakingAnimation } from "@components/Animation/Break/break";
 import { MovingAnimation } from "@components/Animation/Move/move";
+import { Game } from "@/game";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
@@ -56,7 +57,7 @@ export class Playfield extends StateManager<GameState> {
             (color) => {
                 if (color === TileColor.NONE)
                     return [80 - Math.min(5 * tileIndex, 63), color];
-                const points = GameSettings.instance?.points;
+                const points = GameSettings.instance?.allPoints;
                 return [0.05 * (points ? points : 10), color];
             }
         );
@@ -142,6 +143,14 @@ export class Playfield extends StateManager<GameState> {
         osm.addPoints(pts);
     }
     async update(time: number) {
+        if (
+            !this.map.gameOver &&
+            Game.input.isCtrl() === "Left" &&
+            Game.input.isPressed("KeyA")
+        ) {
+            this.map.gameOver = true;
+            this.gameOver();
+        }
         await this.map.update(time);
     }
 }

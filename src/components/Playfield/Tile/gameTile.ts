@@ -4,12 +4,14 @@ import { AnimatableTile } from "@components/Animation/animatedTile";
 import { HoverAnimation } from "@components/Animation/Hover/hover";
 import { AnimatedSprite } from "@components/Animation/animatedSprite";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { oTILE_Z } from "@/utils/zLayers";
 export class GameTile extends AnimatableTile {
     constructor(
         id: string,
         gridPosition: Vector_2,
         coords: Vector2,
-        [width, height]: Vector2 = [40, 40]
+        [width, height]: Vector2 = [40, 40],
+        zIndex = oTILE_Z
     ) {
         super(
             "",
@@ -18,6 +20,7 @@ export class GameTile extends AnimatableTile {
                 coords,
                 size: [width, height],
                 events: { onenter: noop, onleave: noop },
+                zIndex,
             })
         );
         this.hoverAnimation = new HoverAnimation.sprite(

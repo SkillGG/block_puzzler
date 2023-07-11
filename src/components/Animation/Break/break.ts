@@ -15,6 +15,7 @@ import {
 } from "@components/Primitives/Sprite/SpriteLoader";
 import { Sprite } from "@components/Primitives/Sprite/Sprite";
 import { LoadedTexture } from "@components/Primitives/Texture/loadedTexture";
+import { aBREAK_Z } from "@/utils/zLayers";
 
 // const breakAnimationJSON = breakAnimData as PixellAnimData;
 
@@ -58,7 +59,8 @@ export namespace BreakingAnimation {
                 [],
                 async () => {},
                 onfinish,
-                60 // fps
+                60, // fps
+                aBREAK_Z
             );
         }
     }

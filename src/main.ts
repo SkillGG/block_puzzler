@@ -54,8 +54,6 @@ SpriteLoader.loadAllSprites().then(() => {
 
     ui.createManager(game.manager);
 
-    document.documentElement.requestFullscreen()
-
     /**
      * Register all GameStates
      */

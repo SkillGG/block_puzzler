@@ -86,7 +86,7 @@ export class Tile extends BoundedGameObject {
         if (options instanceof Tile) {
             const pTile = options;
             const opts = copyOptions;
-            super(id, pTile.bounds);
+            super(id, pTile.bounds, opts?.zIndex || pTile.zIndex);
             this.anchor = pTile.anchor;
             this.originalAnchor = opts?.gridPosition || pTile.originalAnchor;
             this.size = opts?.size || pTile.size;
@@ -98,12 +98,11 @@ export class Tile extends BoundedGameObject {
             this.onleave = opts?.events?.onleave || pTile.onleave;
             const sprite = opts?.sprite || pTile.sprite;
             if (sprite) this.sprite = new Sprite(sprite);
-            this.zIndex = opts?.zIndex || pTile.zIndex;
             this.isHovered = pTile.isHovered;
         } else if (!(options instanceof Tile)) {
             const [row, col] = options.coords;
             const [width, height] = options.size || [40, 40];
-            super(id, new RectangleBounds(0, 0, width, height));
+            super(id, new RectangleBounds(0, 0, width, height), options.zIndex);
             this.anchor = options.gridPosition;
             this.originalAnchor = { ...options.gridPosition };
             this.size = [width, height];

@@ -16,6 +16,7 @@ import { GameSettings } from "@/UI";
 import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { GameTile } from "../Tile/gameTile";
+import { oTILE_Z } from "@/utils/zLayers";
 
 type alignableVector_2 = Record<"x" | "y", "center" | number>;
 
@@ -78,10 +79,15 @@ export class PlayMap implements Updateable {
 
     private playfield: Playfield;
 
-    border = new Rectangle("map_border", new RectangleBounds(0, 0, 0, 0), {
-        strokeColor: "black",
-        strokeWidth: 2,
-    });
+    border = new Rectangle(
+        "map_border",
+        new RectangleBounds(0, 0, 0, 0),
+        {
+            strokeColor: "black",
+            strokeWidth: 2,
+        },
+        2
+    );
 
     _newColors: [TileCoords, TileColor][] = [];
 
@@ -123,7 +129,8 @@ export class PlayMap implements Updateable {
                         `tile${col + cols * row}`,
                         this._pos,
                         [row, col],
-                        [TileSize, TileSize]
+                        [TileSize, TileSize],
+                        oTILE_Z
                     )
                 );
             }

@@ -8,6 +8,8 @@ import { Label, LabelWithBorderStyle } from "@primitives/Label/Label";
 import { GameObject } from "@components/GameObject";
 import { GameSettings } from "@/UI";
 import { Button } from "@components/Primitives/Button/Button";
+import { mGAMEOVER_Z } from "@/utils/zLayers";
+import { Group } from "@primitives/Group/Group";
 
 export class GameOverScreen extends StateManager<GameState> {
     static DefaultID = "gameOver";
@@ -22,14 +24,13 @@ export class GameOverScreen extends StateManager<GameState> {
 
     static statCount = 0;
 
-    getStatLabels(statName: string, i?: number): [Label, Label] {
+    getStatLabels(statName: string, y: number, zIndex?: number): Group {
         const gameOverBoxBounds = new RectangleBounds(
             50,
             30,
             Game.WIDTH - 100,
             250
         );
-        if (!i) i = GameOverScreen.statCount++;
         const labelStyle: LabelWithBorderStyle = {
             label: {
                 halign: "left",
@@ -37,12 +38,14 @@ export class GameOverScreen extends StateManager<GameState> {
                 textColor: "white",
             },
         };
-        return [
+        return new Group(
+            "gameover_" + statName,
+            zIndex,
             new Label(
-                `${statName}Name`,
+                `name`,
                 new RectangleBounds(
                     gameOverBoxBounds.x + gameOverBoxBounds.width / 3,
-                    gameOverBoxBounds.y + 80 + 30 * i,
+                    gameOverBoxBounds.y + y,
                     gameOverBoxBounds.width / 3,
                     0
                 ),
@@ -51,13 +54,13 @@ export class GameOverScreen extends StateManager<GameState> {
                     ...labelStyle,
                     label: { ...labelStyle.label, halign: "left" },
                 },
-                10
+                zIndex
             ),
             new Label(
-                `${statName}Value`,
+                `value`,
                 new RectangleBounds(
                     gameOverBoxBounds.x + gameOverBoxBounds.width / 3,
-                    gameOverBoxBounds.y + 80 + 30 * i,
+                    gameOverBoxBounds.y + y,
                     gameOverBoxBounds.width / 3,
                     0
                 ),
@@ -66,17 +69,17 @@ export class GameOverScreen extends StateManager<GameState> {
                     ...labelStyle,
                     label: { ...labelStyle.label, halign: "right" },
                 },
-                10
-            ),
-        ];
+                zIndex
+            )
+        );
     }
 
-    constructor(playfield: Playfield) {
+    constructor(playfield: Playfield, zIndex = mGAMEOVER_Z) {
         super(GameOverScreen.DefaultID, playfield.manager, playfield.state);
         const gameOverBoxBounds = new RectangleBounds(
-            50,
-            30,
-            Game.WIDTH - 100,
+            100,
+            100,
+            Game.WIDTH - 200,
             450
         );
         const getCenteredLabelBoundsAtY = (y: number) =>
@@ -86,11 +89,11 @@ export class GameOverScreen extends StateManager<GameState> {
             );
 
         const statLabels = [
-            this.getStatLabels("Points"),
-            this.getStatLabels("Moves"),
+            this.getStatLabels("Points", gameOverBoxBounds.x + 50, zIndex),
+            this.getStatLabels("Moves", gameOverBoxBounds.x + 90, zIndex),
         ];
-        this.movesLabel = statLabels[1][1];
-        this.pointsLabel = statLabels[0][1];
+        this.movesLabel = statLabels[0].getObject("value");
+        this.pointsLabel = statLabels[0].getObject("value");
 
         this.objects.push(
             new Rectangle(
@@ -113,7 +116,7 @@ export class GameOverScreen extends StateManager<GameState> {
                 },
                 10
             ),
-            ...statLabels.flat(1),
+            ...statLabels,
             new Button(
                 "restartButton",
                 new RectangleBounds(
@@ -191,7 +194,7 @@ export class GameOverScreen extends StateManager<GameState> {
         // handle clicks on GameOverScreen
         const osm = GameSettings.instance;
         if (!osm) return;
-        this.pointsLabel.text = `${osm.points}`;
+        this.pointsLabel.text = `${osm.allPoints}`;
         this.movesLabel.text = `${osm.moves}`;
     }
     removeObjects(): void {

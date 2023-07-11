@@ -71,11 +71,15 @@ export class ObjectManager<AvailableStates extends string>
         const objectsFromThisState = this.getStateObjects(this.currentState);
         if (objectsFromThisState) {
             for (const zLayer of this.divideByZ(objectsFromThisState)) {
-                for (const obj of zLayer) {
-                    ctx.beginPath();
-                    await obj.safeCTXRender(ctx);
-                    ctx.closePath();
-                }
+                await new Promise((res) => {
+                    Promise.all(
+                        zLayer.map(async (q) => {
+                            ctx.beginPath();
+                            await q.safeCTXRender(ctx);
+                            ctx.closePath();
+                        })
+                    ).then(res);
+                });
             }
         }
     }

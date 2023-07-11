@@ -2,12 +2,13 @@ import { Vector2, getTextMeasuresWithFont } from "@utils";
 import { GameObject } from "@components/GameObject";
 import { Label } from "@primitives/Label/Label";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
+import { oFPS_Z } from "@/utils/zLayers";
 
 export class FpsCounter extends GameObject {
     fps: Label;
     version: Label;
-    constructor(pos: Vector2, version: string, font?: string) {
-        super("fpsCounter");
+    constructor(pos: Vector2, version: string, font?: string, zIndex = oFPS_Z) {
+        super("fpsCounter", zIndex);
         this.fps = new Label("fpsLabel", new RectangleBounds(pos, [0, 0]), "", {
             label: {
                 valign: "top",

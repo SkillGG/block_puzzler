@@ -6,6 +6,10 @@ import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBound
 import { Game } from "./game";
 import { Playfield } from "@components/Playfield/playfield";
 import { Button } from "@components/Primitives/Button/Button";
+import { Slider } from "@primitives/Slider/Slider";
+import { mUI_Z } from "./utils/zLayers";
+import { Hideable } from "@utils";
+import { BoundedGameObject } from "@components/GameObject";
 
 declare global {
     interface Window {
@@ -18,13 +22,20 @@ export class UIManager<T extends string> extends StateManager<T> {
     get defaultID() {
         return UIManager.DefaultID;
     }
+
     areRegistered = false;
     pointsLabel: Label;
     movesLabel: Label;
     dragLabel: Button;
+    levelLabel: Label;
+    levelSlider: Slider;
     parent: GameSettings<T>;
 
-    constructor(manager: ObjectManager<T>, parent: GameSettings<T>) {
+    constructor(
+        manager: ObjectManager<T>,
+        parent: GameSettings<T>,
+        zIndex = mUI_Z
+    ) {
         super(UIManager.DefaultID, manager, "any");
         this.pointsLabel = new Label(
             "pointsLabel",
@@ -32,7 +43,8 @@ export class UIManager<T extends string> extends StateManager<T> {
             "",
             {
                 label: { halign: "right", font: "normal 1em auto" },
-            }
+            },
+            zIndex
         );
         this.movesLabel = new Label(
             "movesLabel",
@@ -40,7 +52,8 @@ export class UIManager<T extends string> extends StateManager<T> {
             "",
             {
                 label: { halign: "right", font: "normal 1em auto" },
-            }
+            },
+            zIndex
         );
         this.dragLabel = new Button(
             "dragLabel",
@@ -59,20 +72,47 @@ export class UIManager<T extends string> extends StateManager<T> {
             "Confirm\nDrag",
             {
                 label: { halign: "center", font: "normal 1em auto" },
-            }
+            },
+            zIndex
+        );
+        this.levelSlider = new Slider(
+            "levelSlider",
+            new RectangleBounds(Game.getWidth() - 300, 600, 250, 20),
+            parent.pointsToFinishLevel,
+            { borderWidth: 2 },
+            zIndex
+        );
+        this.levelLabel = new Label(
+            "levelLabel",
+            new RectangleBounds(Game.getWidth() - 320, 603, 0, 0),
+            "",
+            {},
+            zIndex
         );
         this.parent = parent;
+    }
+
+    forEach(f: (g: BoundedGameObject & Hideable) => void) {
+        [
+            this.pointsLabel,
+            this.movesLabel,
+            this.levelLabel,
+            this.levelSlider,
+            this.dragLabel,
+        ].forEach((o) => f(o));
     }
 
     refreshUI() {
         if (!this.currentState) return;
         else if (this.currentState === GameState.GAME) {
-            this.pointsLabel.show();
-            this.movesLabel.show();
-            this.pointsLabel.text = `Points: ${this.parent.points}`;
+            this.forEach((o) => o.show());
+            this.pointsLabel.hide();
+            this.pointsLabel.text = `Points: ${this.parent.allPoints}`;
             this.movesLabel.text = `Moves: ${this.parent.moves}`;
+            this.levelSlider.max = this.parent.pointsToFinishLevel;
+            this.levelLabel.text = `${this.parent.level}`;
+            this.levelSlider.current = this.parent.currentPoints;
             if (Game.input.pointerType === "touch") {
-                this.dragLabel.show();
                 this.dragLabel.label.text = this.parent.autoPlaceAfterDrag
                     ? "DragConfirm: false"
                     : "DragConfirm: true";
@@ -80,22 +120,17 @@ export class UIManager<T extends string> extends StateManager<T> {
                 this.dragLabel.hide();
             }
         } else {
-            this.pointsLabel.hide();
-            this.movesLabel.hide();
+            this.forEach((o) => o.hide());
         }
     }
     removeObjects(): void {
         if (!this.areRegistered) return;
-        this.removeObject(this.pointsLabel);
-        this.removeObject(this.movesLabel);
-        this.removeObject(this.dragLabel);
+        this.forEach((o) => this.removeObject(o));
         this.areRegistered = false;
     }
     registerObjects(): void {
         if (this.areRegistered) return;
-        this.registerObject(this.pointsLabel);
-        this.registerObject(this.dragLabel);
-        this.registerObject(this.movesLabel);
+        this.forEach((o) => this.registerObject(o));
         this.areRegistered = true;
     }
     async update() {
@@ -107,7 +142,30 @@ export class GameSettings<T extends string> {
     static instance: GameSettings<any> | null = null;
 
     stateManager: UIManager<T> | null = null;
-    points: number = 0;
+    #points: number = 0;
+    level = 0;
+
+    get prevLvlPoints() {
+        return this.level === 0
+            ? 0
+            : this.getRequiredPointsForLevel(this.level - 1);
+    }
+
+    get allPoints() {
+        return this.#points;
+    }
+
+    get currentPoints() {
+        return this.#points - this.prevLvlPoints;
+    }
+
+    get pointsToFinishLevel() {
+        return this.getRequiredPointsForLevel(this.level) - this.prevLvlPoints;
+    }
+
+    getRequiredPointsForLevel(l: number) {
+        return Math.floor(Math.pow(2.5, 2 + l));
+    }
 
     autoPlaceAfterDrag: boolean = true;
 
@@ -141,11 +199,14 @@ export class GameSettings<T extends string> {
 
     gameRestarted() {
         this._gameOver = false;
-        this.points = 0;
+        this.#points = 0;
     }
 
     addPoints(pts: number) {
-        this.points += pts;
+        this.#points += pts;
+        if (this.pointsToFinishLevel - this.currentPoints <= 0) {
+            this.level++;
+        }
     }
     createManager(manager: ObjectManager<T>) {
         this.stateManager = new UIManager(manager, this);
