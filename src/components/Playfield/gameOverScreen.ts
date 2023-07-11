@@ -32,7 +32,7 @@ export class GameOverScreen extends StateManager<GameState> {
         if (!i) i = GameOverScreen.statCount++;
         const labelStyle: LabelWithBorderStyle = {
             label: {
-                align: "left",
+                halign: "left",
                 font: "normal 1.3em auto",
                 textColor: "white",
             },
@@ -49,7 +49,7 @@ export class GameOverScreen extends StateManager<GameState> {
                 `${statName}:`,
                 {
                     ...labelStyle,
-                    label: { ...labelStyle.label, align: "left" },
+                    label: { ...labelStyle.label, halign: "left" },
                 },
                 10
             ),
@@ -64,7 +64,7 @@ export class GameOverScreen extends StateManager<GameState> {
                 `0`,
                 {
                     ...labelStyle,
-                    label: { ...labelStyle.label, align: "right" },
+                    label: { ...labelStyle.label, halign: "right" },
                 },
                 10
             ),

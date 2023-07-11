@@ -17,6 +17,7 @@ export class FpsCounter extends GameObject {
             version
         );
         this.version.style.font = font || "normal 1em auto";
+        this.version.style.valign = "top";
         this.createTime = this.curTime = performance.now();
     }
     createTime: number;

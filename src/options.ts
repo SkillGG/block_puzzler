@@ -36,7 +36,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
             new RectangleBounds(0, 10, Game.getWidth() - 25, 0),
             "",
             {
-                label: { align: "right", font: "normal 1em auto" },
+                label: { halign: "right", font: "normal 1em auto" },
             }
         );
         this.movesLabel = new Label(
@@ -44,7 +44,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
             new RectangleBounds(0, 30, Game.getWidth() - 25, 0),
             "",
             {
-                label: { align: "right", font: "normal 1em auto" },
+                label: { halign: "right", font: "normal 1em auto" },
             }
         );
         this.dragLabel = new Button(
@@ -63,7 +63,7 @@ export class OptionsStateManager<T extends string> extends StateManager<T> {
             },
             "Confirm\nDrag",
             {
-                label: { align: "center", font: "normal 1em auto" },
+                label: { halign: "center", font: "normal 1em auto" },
             }
         );
         this.parent = parent;

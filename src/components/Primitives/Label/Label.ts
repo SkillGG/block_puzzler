@@ -13,31 +13,29 @@ export interface LabelWithBorderStyle {
 export interface LabelTextStyle {
     textColor: string;
     font: string;
-    align: AlignText;
-    justify: JustifyText;
+    halign: AlignText;
+    valign: JustifyText;
 }
 
 export const LabelDefaultStyle: LabelTextStyle = {
-    align: "center",
+    halign: "center",
     font: "",
-    justify: "center",
+    valign: "center",
     textColor: "black",
 };
 
 export class Label extends BoundedGameObject {
-    text: string;
     border: Rectangle;
     style: LabelTextStyle;
     initStyle: LabelWithBorderStyle;
     constructor(
         id: string,
         bounds: RectangleBounds,
-        text: string = "",
+        public text: string = "",
         style?: LabelWithBorderStyle,
         zIndex?: number
     ) {
         super(id, bounds, zIndex);
-        this.text = text;
         this.style = { ...LabelDefaultStyle, ...style?.label };
         this.border = new Rectangle(`${id}_border`, this.bounds, {
             ...style?.border,
@@ -52,20 +50,20 @@ export class Label extends BoundedGameObject {
             textBounds.actualBoundingBoxLeft +
             textBounds.actualBoundingBoxRight;
         const textHeight =
-            textBounds.actualBoundingBoxAscent +
-            textBounds.actualBoundingBoxDescent;
+            textBounds.fontBoundingBoxAscent +
+            textBounds.fontBoundingBoxDescent;
         const boundHeight = this.bounds.height || textHeight;
         const boundWidth = this.bounds.width || textWidth;
         const textX =
-            this.style.align === "left"
+            this.style.halign === "left"
                 ? this.bounds.x
-                : this.style.align === "right"
+                : this.style.halign === "right"
                 ? this.bounds.x + this.bounds.width - textWidth
                 : this.bounds.x + (boundWidth - textWidth) / 2;
         const textY =
-            this.style.justify === "top"
+            this.style.valign === "top"
                 ? this.bounds.y + textHeight
-                : this.style.justify === "bottom"
+                : this.style.valign === "bottom"
                 ? this.bounds.y + this.bounds.height - textHeight
                 : this.bounds.y + (boundHeight + textHeight) / 2;
         ctx.fillStyle = this.style.textColor;
