@@ -4,12 +4,19 @@ import { Label } from "@primitives/Label/Label";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 
 export class FpsCounter extends GameObject {
-    label: Label;
-    constructor(pos: Vector2, font?: string) {
+    fps: Label;
+    version: Label;
+    constructor(pos: Vector2, version: string, font?: string) {
         super("fpsCounter");
-        this.label = new Label("fpsLabel", new RectangleBounds(pos, [0, 0]));
-        this.label.style.font = font || "normal 1em auto";
-
+        this.fps = new Label("fpsLabel", new RectangleBounds(pos, [0, 0]));
+        this.fps.style.font = font || "normal 1em auto";
+        this.fps.bounds.moveBy(0, 15);
+        this.version = new Label(
+            "versionlabel",
+            new RectangleBounds(pos, [0, 0]),
+            version
+        );
+        this.version.style.font = font || "normal 1em auto";
         this.createTime = this.curTime = performance.now();
     }
     createTime: number;
@@ -46,7 +53,8 @@ export class FpsCounter extends GameObject {
     }
     async render(ctx: CanvasRenderingContext2D) {
         this.fpsCount++;
-        this.label.text = "FPS: " + this.getAverageFPS();
-        await this.label.render(ctx);
+        this.fps.text = "FPS: " + this.getAverageFPS();
+        await this.fps.render(ctx);
+        await this.version.render(ctx);
     }
 }

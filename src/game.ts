@@ -43,6 +43,9 @@ export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
 {
+
+    static readonly VERSION = "main v0.0.07"
+
     static readonly desiredFPS = 60;
 
     canvasContext: CanvasRenderingContext2D;
