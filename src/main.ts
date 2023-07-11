@@ -63,14 +63,8 @@ SpriteLoader.loadAllSprites().then(() => {
     /**
      * Add objects
      */
-<<<<<<< HEAD
     const fpsCounter = new FpsCounter([10, 0], Game.VERSION);
     game.manager.addObject(fpsCounter, "any");
-=======
-    const fpsCounter = new FpsCounter([10, 10], Game.VERSION);
-    game.manager.addObject(fpsCounter, GameState.GAME);
-    game.manager.addObject(fpsCounter, GameState.MENU);
->>>>>>> master
 
     const menuManager = new GameMenu(game.manager);
     game.manager.addStateManager(new GameMenu(game.manager));
