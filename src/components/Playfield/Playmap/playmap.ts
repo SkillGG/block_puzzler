@@ -11,7 +11,7 @@ import { LEFT_MOUSE_BUTTON } from "@components/KeyboardManager";
 import { Playfield } from "../playfield";
 import { LogI, LogE } from "@/console";
 import { Astar, AstarPath, Grid } from "@astar";
-import { GameOptions } from "@/options";
+import { GameSettings } from "@/UI";
 
 import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
@@ -822,7 +822,7 @@ export class PlayMap implements Updateable {
                         ) {
                             if (this.selectedTile) {
                                 // released drag
-                                const osm = GameOptions.instance;
+                                const osm = GameSettings.instance;
                                 let autoPlace = false;
                                 if (osm) {
                                     autoPlace = osm.autoPlaceAfterDrag;

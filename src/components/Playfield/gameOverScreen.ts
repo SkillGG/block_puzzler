@@ -6,7 +6,7 @@ import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { Label, LabelWithBorderStyle } from "@primitives/Label/Label";
 import { GameObject } from "@components/GameObject";
-import { GameOptions } from "@/options";
+import { GameSettings } from "@/UI";
 import { Button } from "@components/Primitives/Button/Button";
 
 export class GameOverScreen extends StateManager<GameState> {
@@ -189,7 +189,7 @@ export class GameOverScreen extends StateManager<GameState> {
     }
     async update() {
         // handle clicks on GameOverScreen
-        const osm = GameOptions.instance;
+        const osm = GameSettings.instance;
         if (!osm) return;
         this.pointsLabel.text = `${osm.points}`;
         this.movesLabel.text = `${osm.moves}`;

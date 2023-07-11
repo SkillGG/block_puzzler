@@ -2,16 +2,16 @@ import { GameObject } from "@components/GameObject";
 import { ObjectManager } from "@components/ObjectManager";
 import { Updateable } from "@utils";
 
+type State<T> = "any" | T;
+
 export abstract class StateManager<T extends string> implements Updateable {
-    id: string;
-    manager: ObjectManager<T>;
-    state: T;
+    currentState: T | null = null;
     abstract get defaultID(): string;
-    constructor(id: string, manager: ObjectManager<T>, state: T) {
-        this.id = id;
-        this.manager = manager;
-        this.state = state;
-    }
+    constructor(
+        public id: string,
+        public manager: ObjectManager<T>,
+        public state: State<T>
+    ) {}
     registerObject(...obs: GameObject[]) {
         for (const o of obs) this.manager.addObject(o, this.state);
     }

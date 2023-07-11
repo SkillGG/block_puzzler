@@ -1,5 +1,6 @@
 import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "./RectangleBounds";
+import { Hideable } from "@utils";
 
 export interface RectangleStyle {
     fillColor: string;
@@ -13,7 +14,7 @@ export const RectangleDefaultStyle: RectangleStyle = {
     strokeWidth: 1,
 };
 
-export class Rectangle extends BoundedGameObject {
+export class Rectangle extends BoundedGameObject implements Hideable {
     style: RectangleStyle;
     constructor(
         id: string,
@@ -24,8 +25,16 @@ export class Rectangle extends BoundedGameObject {
         super(id, bounds, zIndex);
         this.style = { ...RectangleDefaultStyle, ...style };
     }
+    #hidden = false;
+    hide(): void {
+        this.#hidden = true;
+    }
+    show(): void {
+        this.#hidden = false;
+    }
     async update() {}
     async render(ctx: CanvasRenderingContext2D) {
+        if (this.#hidden) return;
         if (this.bounds.width * this.bounds.height === 0) return;
         ctx.fillStyle = this.style.fillColor;
         ctx.strokeStyle = this.style.strokeColor;
@@ -40,6 +49,7 @@ export class Rectangle extends BoundedGameObject {
         ctx.stroke();
     }
     intersects(bounds: RectangleBounds) {
+        if (this.#hidden) return;
         return this.bounds.intersects(bounds);
     }
 }

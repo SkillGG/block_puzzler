@@ -1,7 +1,7 @@
 import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { Rectangle, RectangleStyle } from "@primitives/Rectangle/Rectangle";
-import { getTextMeasures } from "@utils";
+import { Hideable, getTextMeasures } from "@utils";
 
 type AlignText = "center" | "right" | "left";
 type JustifyText = "center" | "top" | "bottom";
@@ -25,7 +25,7 @@ export const LabelDefaultStyle: LabelTextStyle = {
     textColor: "black",
 };
 
-export class Label extends BoundedGameObject {
+export class Label extends BoundedGameObject implements Hideable {
     border: Rectangle;
     style: LabelTextStyle;
     initStyle: LabelWithBorderStyle;
@@ -43,7 +43,19 @@ export class Label extends BoundedGameObject {
         });
         this.initStyle = { ...style };
     }
+
+    #hidden = false;
+
+    show() {
+        this.#hidden = false;
+    }
+
+    hide() {
+        this.#hidden = true;
+    }
+
     async render(ctx: CanvasRenderingContext2D) {
+        if (this.#hidden) return;
         await this.border.render(ctx);
         ctx.font = this.style.font;
         const textBounds = getTextMeasures(ctx, this.text);

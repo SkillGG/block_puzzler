@@ -2,9 +2,9 @@ import { DevConsole } from "@/console";
 import { InputManager } from "@components/KeyboardManager";
 import { ObjectManager } from "@components/ObjectManager";
 import { Renderable, Updateable } from "@utils";
-import { GameOptions } from "@/options";
 import { Vector2 } from "@utils";
 import { GameState } from "@/main";
+import { GameSettings } from "./UI";
 
 export const normalizeVector2RelativeToElement = (
     elem: HTMLElement,
@@ -43,8 +43,7 @@ export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
 {
-
-    static readonly VERSION = "master v0.0.08"
+    static readonly VERSION = "alpha v0.0.09";
 
     static readonly desiredFPS = 60;
 
@@ -56,7 +55,7 @@ export class Game<T extends string>
     readonly gameHeight: number = Game.HEIGHT;
     readonly gameWidth: number = Game.WIDTH;
     readonly devConsole: DevConsole;
-    readonly options: GameOptions<T>;
+    readonly options: GameSettings<T>;
 
     static input: InputManager = new InputManager();
 
@@ -84,7 +83,7 @@ export class Game<T extends string>
 
     constructor(
         devConsole: DevConsole,
-        options: GameOptions<T>,
+        options: GameSettings<T>,
         defaultState: T
     ) {
         super();
@@ -117,30 +116,11 @@ export class Game<T extends string>
     stop() {
         this.running = false;
     }
-    checkUI() {
-        if (this.options.stateManager) {
-            if (this.options.isHidden) {
-                if (
-                    !this.manager.getStateManager(
-                        this.options.stateManager.defaultID
-                    )
-                ) {
-                    this.manager.addStateManager(this.options.stateManager);
-                }
-            } else {
-                this.manager.removeStateManager(
-                    this.options.stateManager.defaultID
-                );
-            }
-        }
-    }
     async update(timeStep: number) {
         await this.manager.update(timeStep);
         await Game.input.update();
-        await this.options.refreshUI();
     }
     async render() {
-        await this.checkUI();
         this.canvasContext.clearRect(0, 0, this.width, this.height);
         await this.manager.render(this.canvasContext);
     }

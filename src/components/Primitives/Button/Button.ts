@@ -1,5 +1,5 @@
 import { Game } from "@/game";
-import { Vector2 } from "@utils";
+import { Hideable, Vector2 } from "@utils";
 import { BoundedGameObject } from "@components/GameObject";
 import {
     LEFT_MOUSE_BUTTON,
@@ -25,7 +25,7 @@ interface ButtonOnCalls {
     onleave?: (ev: ButtonMouseEvent) => void;
 }
 
-export class Button extends BoundedGameObject {
+export class Button extends BoundedGameObject implements Hideable {
     label: Label;
     onCalls: ButtonOnCalls;
     constructor(
@@ -41,7 +41,18 @@ export class Button extends BoundedGameObject {
         this.label = new Label(`${id}_label`, bounds, label, style);
     }
     isIn: boolean = false;
+
+    #hidden = false;
+
+    hide() {
+        this.#hidden = true;
+    }
+    show() {
+        this.#hidden = false;
+    }
+
     async update() {
+        if (this.#hidden) return;
         const { _mousePosition: mousePos } = Game.input;
         const MouseEvent = { mousePos, target: this };
         if (Game.input.isPointerIn(this.bounds)) {
@@ -67,6 +78,7 @@ export class Button extends BoundedGameObject {
         }
     }
     async render(ctx: CanvasRenderingContext2D) {
+        if(this.#hidden) return;
         await this.label.render(ctx);
     }
 }

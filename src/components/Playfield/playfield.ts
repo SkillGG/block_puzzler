@@ -4,7 +4,7 @@ import { StateManager } from "@components/StateManager";
 import { PlayMap } from "@components/Playfield/Playmap/playmap";
 import { Tile, TileColor } from "./Tile/tile";
 import { getRandomWeightedNumber, randomInt } from "@utils";
-import { GameOptions } from "@/options";
+import { GameSettings } from "@/UI";
 import { GameOverScreen } from "./gameOverScreen";
 import { BreakingAnimation } from "@components/Animation/Break/break";
 import { MovingAnimation } from "@components/Animation/Move/move";
@@ -56,7 +56,7 @@ export class Playfield extends StateManager<GameState> {
             (color) => {
                 if (color === TileColor.NONE)
                     return [80 - Math.min(5 * tileIndex, 63), color];
-                const points = GameOptions.instance?.points;
+                const points = GameSettings.instance?.points;
                 return [0.05 * (points ? points : 10), color];
             }
         );
@@ -110,7 +110,7 @@ export class Playfield extends StateManager<GameState> {
 
     startGame(ms: number) {
         this.init(ms);
-        const osm = GameOptions.instance;
+        const osm = GameSettings.instance;
         if (!osm) return;
         osm.gameRestarted();
         this.map.start();
@@ -123,7 +123,7 @@ export class Playfield extends StateManager<GameState> {
 
     gameOver() {
         this.gameOverScreen.registerObjects();
-        const osm = GameOptions.instance;
+        const osm = GameSettings.instance;
         if (!osm) return;
         osm.gameOver();
     }
@@ -137,7 +137,7 @@ export class Playfield extends StateManager<GameState> {
         this.registerObject(this.map.border);
     }
     addPoints(pts: number): void {
-        const osm = GameOptions.instance;
+        const osm = GameSettings.instance;
         if (!osm) return;
         osm.addPoints(pts);
     }

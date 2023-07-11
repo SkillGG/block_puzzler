@@ -271,6 +271,10 @@ export interface Updateable {
 export interface Renderable {
     render: (ctx: CanvasRenderingContext2D) => Promise<void>;
 }
+export interface Hideable {
+    hide(): void;
+    show(): void;
+}
 
 // #endregion Game interfaces
 

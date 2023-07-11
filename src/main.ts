@@ -2,7 +2,7 @@ import "./style.css";
 import { Game } from "./game";
 import { DevConsole } from "./console";
 import { getHTMLBoxes } from "@utils";
-import { GameOptions } from "./options";
+import { GameSettings } from "./UI";
 import { GameMenu } from "@components/Menu/menu";
 import { FpsCounter } from "@components/FpsCounter/fpsCounter";
 import { Playfield } from "@components/Playfield/playfield";
@@ -42,19 +42,19 @@ SpriteLoader.loadAllSprites().then(() => {
         consoleBox as HTMLDivElement
     ));
 
-    const options = (window.options = new GameOptions<GameState>(
-        optionsBox as HTMLDivElement
-    ));
+    const ui = (window.options = new GameSettings<GameState>());
 
     const game = (window.game = new Game<GameState>(
         devConsole,
-        options,
+        ui,
         GameState.MENU
     ));
 
     gameBox.append(game);
 
-    options.createManager(game.manager, GameState.GAME);
+    ui.createManager(game.manager);
+
+    document.documentElement.requestFullscreen()
 
     /**
      * Register all GameStates
@@ -64,13 +64,15 @@ SpriteLoader.loadAllSprites().then(() => {
      * Add objects
      */
     const fpsCounter = new FpsCounter([10, 0], Game.VERSION);
-    game.manager.addObject(fpsCounter, GameState.GAME);
-    game.manager.addObject(fpsCounter, GameState.MENU);
+    game.manager.addObject(fpsCounter, "any");
 
     const menuManager = new GameMenu(game.manager);
     game.manager.addStateManager(new GameMenu(game.manager));
     menuManager.registerObjects();
     game.manager.addStateManager(new Playfield(game.manager));
+
+    game.manager.addStateManager(ui.manager);
+    ui.manager.registerObjects();
 
     /**
      * Game loop
