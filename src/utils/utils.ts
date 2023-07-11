@@ -122,6 +122,27 @@ export class CleanableCanvas extends OffscreenCanvas {
     }
 }
 
+export const getTextMeasures = (
+    ctx: CanvasRenderingContext2D,
+    text: string
+) => {
+    const measures = ctx.measureText(text);
+    return {
+        width: measures.actualBoundingBoxRight - measures.actualBoundingBoxLeft,
+        height:
+            measures.actualBoundingBoxAscent +
+            measures.actualBoundingBoxDescent,
+        ascent: measures.actualBoundingBoxAscent,
+        descent: measures.actualBoundingBoxDescent,
+    };
+};
+
+export const getTextMeasuresWithFont = (font: string, text: string) => {
+    const { ctx } = createNewCanvas();
+    ctx.font = font;
+    return getTextMeasures(ctx, text);
+};
+
 // #endregion DOM
 
 // #region Images

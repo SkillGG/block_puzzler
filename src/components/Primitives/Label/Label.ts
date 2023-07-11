@@ -1,6 +1,7 @@
 import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { Rectangle, RectangleStyle } from "@primitives/Rectangle/Rectangle";
+import { getTextMeasures } from "@utils";
 
 type AlignText = "center" | "right" | "left";
 type JustifyText = "center" | "top" | "bottom";
@@ -45,13 +46,9 @@ export class Label extends BoundedGameObject {
     async render(ctx: CanvasRenderingContext2D) {
         await this.border.render(ctx);
         ctx.font = this.style.font;
-        const textBounds = ctx.measureText(this.text);
-        const textWidth =
-            textBounds.actualBoundingBoxLeft +
-            textBounds.actualBoundingBoxRight;
-        const textHeight =
-            textBounds.fontBoundingBoxAscent +
-            textBounds.fontBoundingBoxDescent;
+        const textBounds = getTextMeasures(ctx, this.text);
+        const textWidth = textBounds.width;
+        const textHeight = textBounds.height;
         const boundHeight = this.bounds.height || textHeight;
         const boundWidth = this.bounds.width || textWidth;
         const textX =
@@ -62,9 +59,9 @@ export class Label extends BoundedGameObject {
                 : this.bounds.x + (boundWidth - textWidth) / 2;
         const textY =
             this.style.valign === "top"
-                ? this.bounds.y + textHeight
+                ? this.bounds.y + textBounds.ascent
                 : this.style.valign === "bottom"
-                ? this.bounds.y + this.bounds.height - textHeight
+                ? this.bounds.y + this.bounds.height - textBounds.descent
                 : this.bounds.y + (boundHeight + textHeight) / 2;
         ctx.fillStyle = this.style.textColor;
         ctx.fillText(

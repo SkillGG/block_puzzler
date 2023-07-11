@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas test</title>
+</head>
+
+<body>
+
+    <div>
+        <label>Text:</label>
+        <input type="text" id="text" placeholder="This is a test pqPQŃĄ" value="" />
+        <br />
+        <label>Font:</label>
+        <input type="text" id="font" />
+        <button id="btn">Save</button>
+    </div>
+    <div>
+        <canvas style="width:600px;height:600px;">
+        </canvas>
+    </div>
+
+    <script>
+        const input = document.querySelector("#font");
+        if (!input) throw new Error("input is null")
+        const text = document.querySelector("#text");
+        if (!text) throw new Error("text is null")
+        let font = input.value;
+        let txt = text.value;
+        const btn = document.querySelector("#btn");
+        if (!btn) throw new Error("btn is null");
+        btn.onclick = () => {
+            font = document.querySelector('#font').value
+            txt = text.value;
+            redraw();
+        }
+        /**
+         * @type {HTMLCanvasElement}
+         */
+        window.font = "";
+        const canvas = document.querySelector("canvas");
+        if (!canvas) throw new Error("Canvas is null")
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("ctx is null")
+        canvas.width = 600;
+        canvas.height = 600;
+        const redraw = () => {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, 600, 600);
+            const drawText = (x, y) => {
+                const pL = x;
+                ctx.beginPath()
+                const pU = y;
+                ctx.fillStyle = "black";
+                ctx.font = font;
+                const tx = txt || text.placeholder;
+                ctx.fillText(tx, pL, pU);
+                ctx.closePath()
+                return {
+                    drawMeasure: (x1, y1, x2, y2, name, color, tYo) => {
+                        ctx.beginPath();
+                        const pL1 = pL + x1;
+                        const pL2 = pL + x2;
+                        const pU1 = pU + y1;
+                        const pU2 = pU + y2;
+                        ctx.moveTo(pL1, pU1);
+                        ctx.lineTo(pL2, pU2);
+                        ctx.strokeStyle = ctx.fillStyle = color;
+                        ctx.font = "20px normal Arial";
+                        ctx.fillText(name, 3, pU1 + 4 + (tYo || 0))
+                        ctx.stroke();
+                    }, measure:
+                        ctx.measureText(tx)
+                }
+            }
+
+            const { drawMeasure: d1, measure: m1 } = drawText(100, 40 + 80 * 0);
+            ctx.lineWidth = 1;
+            d1(0, m1.actualBoundingBoxAscent, m1.width, m1.actualBoundingBoxAscent, "+ascent", "red")
+            d1(0, m1.actualBoundingBoxDescent, m1.width, m1.actualBoundingBoxDescent, "descent", "blue")
+
+            const { drawMeasure: d3, measure: m3 } = drawText(100, 60 + 80 * 1);
+            ctx.lineWidth = 1;
+            d3(0, 0, m3.width, 0, "baseline", "blue", -5)
+            d3(0, -m3.fontBoundingBoxAscent, m3.width, -m3.fontBoundingBoxAscent, "-ascent", "red")
+            d3(0, m3.fontBoundingBoxDescent, m3.width, m3.fontBoundingBoxDescent, "descent", "green", 5)
+
+            const { drawMeasure: d2, measure: m2 } = drawText(100, 60 + 80 * 2);
+            ctx.lineWidth = 1;
+            d2(0, -m2.fontBoundingBoxAscent, m2.width, -m2.fontBoundingBoxAscent, "fascent", "purple")
+            d2(0, m2.fontBoundingBoxDescent, m2.width, m2.fontBoundingBoxDescent, "fdescent", "green")
+
+
+            const { drawMeasure: d4, measure: m4 } = drawText(100, 60 + 80 * 3);
+            ctx.lineWidth = 1;
+            d4(m4.actualBoundingBoxLeft, -m4.actualBoundingBoxAscent, m4.actualBoundingBoxLeft, m4.actualBoundingBoxDescent, "left", "red")
+            d4(m4.actualBoundingBoxRight, -m4.actualBoundingBoxAscent, m4.actualBoundingBoxRight, m4.actualBoundingBoxDescent, "right", "green", 20)
+
+            const { drawMeasure: d5, measure: m5 } = drawText(100, 60 + 80 * 4);
+            ctx.lineWidth = 1;
+            d5(0, -m5.actualBoundingBoxAscent, 0, m5.actualBoundingBoxDescent, "pos.x", "red")
+            d5(m5.width, -m5.actualBoundingBoxAscent, m5.width, m5.actualBoundingBoxDescent, "+w", "blue", 20)
+
+
+        }
+        redraw();
+
+
+    </script>
+
+</body>
+
+</html>

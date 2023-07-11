@@ -44,7 +44,7 @@ export class Game<T extends string>
     implements Updateable, Renderable
 {
 
-    static readonly VERSION = "p v0.0.07"
+    static readonly VERSION = "master v0.0.08"
 
     static readonly desiredFPS = 60;
 
