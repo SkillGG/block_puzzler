@@ -43,8 +43,7 @@ export class Game<T extends string>
     extends HTMLCanvasElement
     implements Updateable, Renderable
 {
-
-    static readonly VERSION = "master v0.0.08"
+    static readonly VERSION = "master v0.0.09";
 
     static readonly desiredFPS = 60;
 
