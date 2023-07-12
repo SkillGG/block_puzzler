@@ -39,28 +39,38 @@ export class Playfield extends StateManager<GameState> {
 
     static randomTileColor_EASY = (
         t: Tile,
-        n: number,
-        _a: Tile[][],
+        alreadyColored: number,
+        remainingTiles: number,
         moveNum: number
     ) => {
         if (moveNum === 0) {
             // start randomizing
         }
 
-        let tileIndex = _a.flat(1).indexOf(t);
-        if (tileIndex < 0) tileIndex = 99;
-
         if (t.color !== TileColor.NONE) return t.color;
-        if (n >= 5) return TileColor.NONE;
+        if (alreadyColored >= 5) return null;
 
-        const weightMap: [number, TileColor][] = Object.values(TileColor).map(
-            (color) => {
-                if (color === TileColor.NONE)
-                    return [80 - Math.min(5 * tileIndex, 63), color];
-                const points = GameSettings.instance?.allPoints;
-                return [0.05 * (points ? points : 10), color];
-            }
-        );
+        const weightMap: [number, TileColor][] =
+            GameSettings.instance.tileColorsForLvl.map((color, i) => {
+                if (color === TileColor.NONE) return [80, color];
+                return [
+                    i < 4
+                        ? 0.5 + GameSettings.instance.level
+                        : 0.5 + GameSettings.instance.level - 3 + 0.5 * (5 - i),
+                    color,
+                ];
+            });
+
+        console.log(weightMap.flat(1));
+
+        if (alreadyColored === 0 && remainingTiles < 1) {
+            const atLeastOneColorWeights =
+                GameSettings.instance.tileColorsForLvl
+                    .filter((c) => c !== TileColor.NONE)
+                    .map((q, i) => [i < 3 ? 5 : 0.5, q] as [number, TileColor]);
+            console.log("aocw", atLeastOneColorWeights);
+            return getRandomWeightedNumber([...atLeastOneColorWeights]);
+        }
 
         const randomColor = getRandomWeightedNumber<TileColor>(weightMap);
 
@@ -111,9 +121,7 @@ export class Playfield extends StateManager<GameState> {
 
     startGame(ms: number) {
         this.init(ms);
-        const osm = GameSettings.instance;
-        if (!osm) return;
-        osm.gameRestarted();
+        GameSettings.instance.gameRestarted();
         this.map.start();
     }
 
@@ -124,9 +132,7 @@ export class Playfield extends StateManager<GameState> {
 
     gameOver() {
         this.gameOverScreen.registerObjects();
-        const osm = GameSettings.instance;
-        if (!osm) return;
-        osm.gameOver();
+        GameSettings.instance.gameOver();
     }
     removeObjects(): void {
         this.map.eachTile((t) => this.removeObject(t));
@@ -138,9 +144,7 @@ export class Playfield extends StateManager<GameState> {
         this.registerObject(this.map.border);
     }
     addPoints(pts: number): void {
-        const osm = GameSettings.instance;
-        if (!osm) return;
-        osm.addPoints(pts);
+        GameSettings.instance.addPoints(pts);
     }
     async update(time: number) {
         if (

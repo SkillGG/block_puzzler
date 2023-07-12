@@ -10,6 +10,7 @@ import { Slider } from "@primitives/Slider/Slider";
 import { mUI_Z } from "./utils/zLayers";
 import { Hideable } from "@utils";
 import { BoundedGameObject } from "@components/GameObject";
+import { TileColor } from "@components/Playfield/Tile/tile";
 
 declare global {
     interface Window {
@@ -139,7 +140,14 @@ export class UIManager<T extends string> extends StateManager<T> {
 }
 
 export class GameSettings<T extends string> {
-    static instance: GameSettings<any> | null = null;
+    static #instance: GameSettings<any> | null = null;
+
+    static get instance() {
+        if (!GameSettings.#instance)
+            throw new Error("Game Settings not created yet!");
+
+        return GameSettings.#instance as GameSettings<any>;
+    }
 
     stateManager: UIManager<T> | null = null;
     #points: number = 0;
@@ -163,8 +171,15 @@ export class GameSettings<T extends string> {
         return this.getRequiredPointsForLevel(this.level) - this.prevLvlPoints;
     }
 
-    getRequiredPointsForLevel(l: number) {
-        return Math.floor(Math.pow(2.5, 2 + l));
+    get tileColorsForLvl() {
+        return Object.values(TileColor).filter(
+            (c, i) =>
+                i <= 3 + GameSettings.instance.level / 3 || c === TileColor.NONE
+        );
+    }
+
+    getRequiredPointsForLevel(l: number): number {
+        return l === 0 ? 6 : this.getRequiredPointsForLevel(l - 1) + l * 6;
     }
 
     autoPlaceAfterDrag: boolean = true;
@@ -177,14 +192,16 @@ export class GameSettings<T extends string> {
         return osm.map.moveCount;
     }
 
-    get manager() {
-        if (!this.stateManager)
+    static get manager() {
+        if (!GameSettings.#instance)
+            throw new Error("UI Instance not created yet!");
+        if (!GameSettings.#instance.stateManager)
             throw new Error("UI State manager not created yet!");
-        return this.stateManager;
+        return GameSettings.#instance.stateManager;
     }
 
     constructor() {
-        GameSettings.instance = this;
+        GameSettings.#instance = this;
     }
 
     private _gameOver = false;
@@ -200,6 +217,7 @@ export class GameSettings<T extends string> {
     gameRestarted() {
         this._gameOver = false;
         this.#points = 0;
+        this.level = 0;
     }
 
     addPoints(pts: number) {

@@ -7,9 +7,9 @@ import { Vector2, Vector_2 } from "@utils";
 export enum TileColor {
     NONE = "transparent",
     BLUE = "blue",
-    RED = "red",
     YELLOW = "yellow",
     GREEN = "green",
+    RED = "red",
 }
 
 export enum PathBlock {

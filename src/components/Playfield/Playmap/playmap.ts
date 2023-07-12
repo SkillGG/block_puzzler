@@ -194,27 +194,32 @@ export class PlayMap implements Updateable {
         getRandomColor: (
             t: Tile,
             n: number,
-            a: Tile[][],
+            a: number,
             moveNum: number
-        ) => TileColor | "rainbow"
+        ) => TileColor | null
     ) {
         LogI("Randomizing colors!");
         let coloredTiles = 0;
-        this.emptyTiles.forEach((t) => {
-            const randomColor = getRandomColor(
-                t,
+        const triedTiles: string[] = [];
+
+        for (let i = 0; i < this.emptyTiles.length; i++) {
+            const tile = this.getRandomTileWhich(
+                (t) => !triedTiles.includes(t.id) && t._color === TileColor.NONE
+            );
+            const color = getRandomColor(
+                tile,
                 coloredTiles,
-                this.tiles,
+                this.emptyTiles.length - triedTiles.length,
                 this.numberOfMoves
             );
-            if (randomColor === "rainbow") return;
-
-            if (randomColor !== TileColor.NONE) {
-                this.newColors.push([t.coords, randomColor]);
-                t.willBecome = randomColor;
+            if (color === null) break;
+            triedTiles.push(tile.id);
+            if (color !== TileColor.NONE) {
+                this.newColors.push([tile.coords, color]);
+                tile.willBecome = color;
                 coloredTiles++;
             }
-        });
+        }
     }
 
     getTiles() {
@@ -829,11 +834,8 @@ export class PlayMap implements Updateable {
                         ) {
                             if (this.selectedTile) {
                                 // released drag
-                                const osm = GameSettings.instance;
-                                let autoPlace = false;
-                                if (osm) {
-                                    autoPlace = osm.autoPlaceAfterDrag;
-                                }
+                                const autoPlace =
+                                    GameSettings.instance.autoPlaceAfterDrag;
 
                                 if (autoPlace) {
                                     if (

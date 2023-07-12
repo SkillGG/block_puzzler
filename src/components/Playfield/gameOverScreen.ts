@@ -192,10 +192,8 @@ export class GameOverScreen extends StateManager<GameState> {
     }
     async update() {
         // handle clicks on GameOverScreen
-        const osm = GameSettings.instance;
-        if (!osm) return;
-        this.pointsLabel.text = `${osm.allPoints}`;
-        this.movesLabel.text = `${osm.moves}`;
+        this.pointsLabel.text = `${GameSettings.instance.allPoints}`;
+        this.movesLabel.text = `${GameSettings.instance.moves}`;
     }
     removeObjects(): void {
         for (const obj of this.objects) this.removeObject(obj);

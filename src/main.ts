@@ -69,8 +69,8 @@ SpriteLoader.loadAllSprites().then(() => {
     menuManager.registerObjects();
     game.manager.addStateManager(new Playfield(game.manager));
 
-    game.manager.addStateManager(ui.manager);
-    ui.manager.registerObjects();
+    game.manager.addStateManager(GameSettings.manager);
+    GameSettings.manager.registerObjects();
 
     /**
      * Game loop
