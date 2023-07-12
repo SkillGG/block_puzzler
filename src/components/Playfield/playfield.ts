@@ -26,6 +26,10 @@ export class Playfield extends StateManager<GameState> {
         this.manager.addStateManager(this.gameOverScreen);
     }
 
+    get moveNumber() {
+        return this.map.moveCount;
+    }
+
     private init(mapSize: number) {
         this.map.createAMap(mapSize, mapSize);
     }
@@ -60,8 +64,6 @@ export class Playfield extends StateManager<GameState> {
                     color,
                 ];
             });
-
-        console.log(weightMap.flat(1));
 
         if (alreadyColored === 0 && remainingTiles < 1) {
             const atLeastOneColorWeights =

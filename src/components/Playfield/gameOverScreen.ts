@@ -92,8 +92,8 @@ export class GameOverScreen extends StateManager<GameState> {
             this.getStatLabels("Points", gameOverBoxBounds.x + 50, zIndex),
             this.getStatLabels("Moves", gameOverBoxBounds.x + 90, zIndex),
         ];
-        this.movesLabel = statLabels[0].getObject("value");
         this.pointsLabel = statLabels[0].getObject("value");
+        this.movesLabel = statLabels[1].getObject("value");
 
         this.objects.push(
             new Rectangle(

@@ -185,11 +185,11 @@ export class GameSettings<T extends string> {
     autoPlaceAfterDrag: boolean = true;
 
     get moves() {
-        const osm = Game.instance?.manager.getStateManager<Playfield>(
+        const osm = GameSettings.manager.manager.getStateManager<Playfield>(
             Playfield.DefaultID
         );
         if (!osm) return 0;
-        return osm.map.moveCount;
+        return osm.moveNumber;
     }
 
     static get manager() {
