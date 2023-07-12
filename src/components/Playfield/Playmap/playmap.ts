@@ -858,10 +858,13 @@ export class PlayMap implements Updateable {
                                                             1
                                                     ];
                                                 if (lastPathTile)
-                                                    this.confirmPlacement = {
-                                                        col: lastPathTile[0],
-                                                        row: lastPathTile[1],
-                                                    };
+                                                    confirmMove(
+                                                        {
+                                                            col: lastPathTile[0],
+                                                            row: lastPathTile[1],
+                                                        },
+                                                        this.selectedTile
+                                                    );
                                             }
                                         }
                                     }
@@ -950,8 +953,10 @@ export class PlayMap implements Updateable {
                                                 this.selectedTile
                                             );
                                     } else {
-                                        this.confirmPlacement =
-                                            this.hoveredTile.coords;
+                                        confirmMove(
+                                            this.hoveredTile.coords,
+                                            this.selectedTile
+                                        );
                                     }
                                 }
                             } else {

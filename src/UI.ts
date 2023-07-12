@@ -108,6 +108,7 @@ export class UIManager<T extends string> extends StateManager<T> {
         else if (this.currentState === GameState.GAME) {
             this.forEach((o) => o.show());
             this.pointsLabel.hide();
+            this.dragLabel.hide();
             this.pointsLabel.text = `Points: ${this.parent.allPoints}`;
             this.movesLabel.text = `Moves: ${this.parent.moves}`;
             this.levelSlider.max = this.parent.pointsToFinishLevel;
