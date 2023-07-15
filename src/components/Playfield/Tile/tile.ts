@@ -119,7 +119,7 @@ export class Tile extends BoundedGameObject {
     }
 
     setSprite(str: string) {
-        this.sprite = new Sprite(SpriteLoader.getSprite(str));
+        this.sprite = new Sprite(SpriteLoader.getSprite(str), { filters: [] });
     }
 
     moveTo(pos: Vector_2) {

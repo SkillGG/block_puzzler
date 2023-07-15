@@ -3,7 +3,7 @@ import { BoundedGameObject } from "@components/GameObject";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { Hideable } from "@utils";
 
-type SliderStyles = {
+export type SliderStyle = {
     foreColor: string;
     bgColor: string;
     borderColor: string;
@@ -13,20 +13,20 @@ type SliderStyles = {
 export class Slider extends BoundedGameObject implements Hideable {
     current = 0;
 
-    static readonly defaultStyle: SliderStyles = {
+    static readonly defaultStyle: SliderStyle = {
         foreColor: "white",
         bgColor: "#ccc4",
         borderColor: "black",
         borderWidth: 3,
     };
 
-    style: SliderStyles;
+    style: SliderStyle;
 
     constructor(
         id: string,
         bounds: RectangleBounds,
         public max: number,
-        style: Partial<SliderStyles> = Slider.defaultStyle,
+        style: Partial<SliderStyle> = Slider.defaultStyle,
         zIndex = oSLIDER_Z
     ) {
         super(id, bounds, zIndex);
@@ -63,7 +63,7 @@ export class Slider extends BoundedGameObject implements Hideable {
         ctx.fill();
         ctx.closePath();
     }
-    async update(): Promise<void> {
+    async update(t: number): Promise<void> {
         if (this.#hidden) return;
     }
     #hidden = false;

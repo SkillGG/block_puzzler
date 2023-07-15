@@ -5,8 +5,8 @@ import spriteSet from "./assets/pika.png";
 import { Vector2, Vector_2, randomInt } from "@utils";
 import { Tile, TileSize } from "@components/Playfield/Tile/tile";
 // import { PixellAnimData } from "../utils";
-import { AnimatedSprite } from "../animatedSprite";
-import { GameAnimation } from "../animation";
+import { AnimatedSprite } from "@components/Animation/objects/animatedSprite";
+import { GameAnimation } from "@components/Animation/animation";
 import { Texture } from "@primitives/Texture/texture";
 import {
     // SpriteAnimationLoaderFunction,
@@ -65,7 +65,7 @@ export namespace BreakingAnimation {
         }
     }
 
-    export class animation extends GameAnimation {
+    export class animation extends GameAnimation<AnimatedSprite[]> {
         origin: Vector2;
 
         sprites: { sprite: AnimatedSprite; vel: Vector_2 }[] = [];
@@ -92,11 +92,11 @@ export namespace BreakingAnimation {
                     vel: { x: vel[0], y: vel[1] },
                 };
             });
-            this.tiles = this.sprites.map(({ sprite }) => sprite);
+            this.objects = this.sprites.map(({ sprite }) => sprite);
         }
-        async render() {}
+        async renderAnimation() {}
 
-        async update(dT: number) {
+        async updateAnimation(dT: number) {
             this.frame++;
             const dS = (dT / 1000) * 60;
             for (let i = 0; i < this.sprites.length; i++) {

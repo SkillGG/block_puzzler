@@ -2,9 +2,10 @@ import { GameState } from "@/main";
 import { Tile } from "@components/Playfield/Tile/tile";
 import { StateManager } from "@components/StateManager";
 import { Vector2 } from "@utils";
-import { AnimatableTile } from "./animatedTile";
+import { AnimatableTile } from "@components/Animation/objects/animatedTile";
 import { Game } from "@/game";
-import { AnimatedSprite } from "./animatedSprite";
+import { AnimatedSprite } from "@components/Animation/objects/animatedSprite";
+import { GameObject } from "@components/GameObject";
 
 export interface CanAnimate {
     render(ctx: CanvasRenderingContext2D, frame: number): void;
@@ -14,8 +15,10 @@ export interface CanAnimate {
     resizeOffsetBy(v: Vector2): void;
 }
 
-export abstract class GameAnimation extends StateManager<GameState> {
-    tiles: (AnimatableTile | AnimatedSprite)[];
+export abstract class GameAnimation<
+    T extends GameObject[]
+> extends StateManager<GameState> {
+    objects: T;
     frame: number;
     defaultID = "animation";
     animating = false;
@@ -23,20 +26,22 @@ export abstract class GameAnimation extends StateManager<GameState> {
         this.animating = true;
     }
     onend: (id: string) => void;
-    constructor(
-        id: string,
-        end: (id: string) => void,
-        ...tiles: Tile[]
-    ) {
+    constructor(id: string, end: (id: string) => void, ...objs: T) {
         super(id, Game.instance!.manager, GameState.GAME);
-        this.tiles = tiles
-            .slice(0, 4)
-            .map((t) => new AnimatableTile(this.id, t));
         this.frame = 0;
         this.onend = end;
+        this.objects = objs;
     }
-    abstract render(_: CanvasRenderingContext2D): void;
-    abstract update(dt: number): Promise<void>;
+
+    abstract renderAnimation(_: CanvasRenderingContext2D): Promise<void>;
+    abstract updateAnimation(_: number): Promise<void>;
+
+    async render(ctx: CanvasRenderingContext2D): Promise<void> {
+        if (this.animating) await this.renderAnimation(ctx);
+    }
+    async update(dt: number): Promise<void> {
+        if (this.animating) await this.updateAnimation(dt);
+    }
 
     end() {
         this.removeObjects();
@@ -44,11 +49,11 @@ export abstract class GameAnimation extends StateManager<GameState> {
     }
 
     removeObjects(): void {
-        this.tiles.forEach((t) => {
+        this.objects.forEach((t) => {
             this.removeObject(t);
         });
     }
     registerObjects(): void {
-        this.tiles.forEach((t) => this.registerObject(t));
+        this.objects.forEach((t) => this.registerObject(t));
     }
 }

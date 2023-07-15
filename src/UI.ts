@@ -11,6 +11,7 @@ import { mUI_Z } from "./utils/zLayers";
 import { Hideable } from "@utils";
 import { BoundedGameObject } from "@components/GameObject";
 import { TileColor } from "@components/Playfield/Tile/tile";
+import { AnimatedSlider } from "@components/Animation/objects/animatedSlider";
 
 declare global {
     interface Window {
@@ -29,7 +30,7 @@ export class UIManager<T extends string> extends StateManager<T> {
     movesLabel: Label;
     dragLabel: Button;
     levelLabel: Label;
-    levelSlider: Slider;
+    levelSlider: AnimatedSlider;
     parent: GameSettings<T>;
 
     constructor(
@@ -76,10 +77,11 @@ export class UIManager<T extends string> extends StateManager<T> {
             },
             zIndex
         );
-        this.levelSlider = new Slider(
+        this.levelSlider = new AnimatedSlider(
             "levelSlider",
             new RectangleBounds(Game.getWidth() - 300, 600, 250, 20),
             parent.pointsToFinishLevel,
+            { animationTick: () => {}, foreSpriteStyle: "clip" },
             { borderWidth: 2 },
             zIndex
         );
@@ -148,6 +150,11 @@ export class GameSettings<T extends string> {
             throw new Error("Game Settings not created yet!");
 
         return GameSettings.#instance as GameSettings<any>;
+    }
+
+    get manager() {
+        if (!this.stateManager) throw new Error("UI Manager not created yet");
+        return this.stateManager;
     }
 
     stateManager: UIManager<T> | null = null;

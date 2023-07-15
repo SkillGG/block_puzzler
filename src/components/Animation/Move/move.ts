@@ -1,6 +1,6 @@
 import { PathBlock, Tile } from "@components/Playfield/Tile/tile";
-import { GameAnimation } from "../animation";
-import { AnimatableTile } from "../animatedTile";
+import { GameAnimation } from "@components/Animation/animation";
+import { AnimatableTile } from "@components/Animation/objects/animatedTile";
 import { Vector2 } from "@utils";
 import { aMOVE_Z } from "@/utils/zLayers";
 
@@ -32,10 +32,8 @@ export namespace MovingAnimation {
         }
     }
 
-    export class animation extends GameAnimation {
+    export class animation extends GameAnimation<AnimatableTile[]> {
         pathLines: PathLine[] = [];
-
-        tiles: AnimatableTile[];
 
         totalDistance: number = 0;
 
@@ -47,7 +45,7 @@ export namespace MovingAnimation {
         ) {
             super(id, end);
             this.frame = 0;
-            this.tiles = path.map((q) => {
+            this.objects = path.map((q) => {
                 return new AnimatableTile(
                     id + "_tile_" + q.id,
                     q,
@@ -60,7 +58,7 @@ export namespace MovingAnimation {
             this.totalDistance = this.pathDistance(
                 path[0].bounds.getPosition()
             );
-            this.tiles = [this.tiles[0]];
+            this.objects = [this.objects[0]];
             start();
         }
         async render() {}
@@ -145,7 +143,9 @@ export namespace MovingAnimation {
 
         blendT = 0;
 
-        async update(dT: number) {
+        async renderAnimation(_: CanvasRenderingContext2D): Promise<void> {}
+
+        async updateAnimation(dT: number) {
             this.frame++;
 
             this.traveled = this.traveled + dT * 1;
@@ -153,7 +153,7 @@ export namespace MovingAnimation {
             if (this.totalDistance - this.traveled < 3)
                 this.traveled = this.totalDistance;
 
-            this.moveToDistance(this.traveled, this.tiles[0]);
+            this.moveToDistance(this.traveled, this.objects[0]);
 
             if (this.traveled >= this.totalDistance) this.end();
         }

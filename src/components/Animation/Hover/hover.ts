@@ -1,5 +1,5 @@
 import { TileSize } from "@components/Playfield/Tile/tile";
-import { AnimatedSprite } from "../animatedSprite";
+import { AnimatedSprite } from "@components/Animation/objects/animatedSprite";
 import { Texture } from "@primitives/Texture/texture";
 import {
     SpriteAnimationLoaderFunction,

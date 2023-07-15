@@ -241,26 +241,6 @@ export const createNewCanvas = () => {
     return { e: can, ctx } as const;
 };
 
-export const applyTintToBitmap = async (
-    img: ImageBitmap,
-    tint: string
-): Promise<string> => {
-    const can = document.createElement("canvas");
-    const ctx = can.getContext("2d");
-    const { width: w, height: h } = img;
-    can.width = w;
-    can.height = h;
-    if (!ctx) throw null;
-    ctx.fillStyle = tint;
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "multiply";
-    ctx.drawImage(img, 0, 0);
-    ctx.globalCompositeOperation = "destination-in";
-    ctx.drawImage(img, 0, 0);
-    const newSRC = can.toDataURL();
-    return newSRC;
-};
-
 // #endregion Images
 
 // #region Game interfaces

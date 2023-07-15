@@ -16,11 +16,6 @@ export default defineConfig({
             "@components": path.resolve(__dirname, "./src/components"),
             "@astar": path.resolve(__dirname, "./src/utils/astar"),
             "@utils": path.resolve(__dirname, "./src/utils/utils"),
-
-            "@animations/*": path.resolve(
-                __dirname,
-                "./src/components/Animation/*"
-            ),
         },
     },
 });

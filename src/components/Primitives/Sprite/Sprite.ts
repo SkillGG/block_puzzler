@@ -1,38 +1,31 @@
-import { TileColor } from "@components/Playfield/Tile/tile";
-import {
-    Renderable,
-    applyTintToBitmap,
-    colorDataToString,
-    colorToRGBA,
-} from "@utils";
+import { Renderable, colorToRGBA } from "@utils";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { LoadedTexture } from "@primitives/Texture/loadedTexture";
+
+type FilterFunction = (ctx: CanvasRenderingContext2D) => void;
+
+type SpriteFilter = {
+    id: string;
+    pre?: FilterFunction;
+    post?: FilterFunction;
+};
+
+type SpriteFilters = SpriteFilter[];
 
 export type SpriteOptions = {
     cacheTints?: true | string[];
     source: RectangleBounds;
     destinationBounds?: RectangleBounds;
-    tint?: string;
+    filters?: SpriteFilters;
 };
 export class Sprite implements Renderable {
     private texture: LoadedTexture;
     private sourceBounds: RectangleBounds;
     private destinationBounds: RectangleBounds;
-    private cachedImage: HTMLImageElement;
-    tint: string;
-    staleCache = true;
 
-    static imageCache: Map<string, HTMLImageElement> = new Map();
+    filters: SpriteFilters = [];
 
-    static getImageFromCache(id: string) {
-        const ret = Sprite.imageCache.get(id);
-        return ret;
-    }
-
-    static saveImageToCache(id: string, img: HTMLImageElement) {
-        Sprite.imageCache.set(id, img);
-        return img;
-    }
+    cachedData: ImageBitmap | null = null;
 
     get destination() {
         return this.destinationBounds;
@@ -47,18 +40,25 @@ export class Sprite implements Renderable {
      * Copying constructor
      * @param s Sprite to copy
      */
-    constructor(s: Sprite);
-    constructor(texOrSprite: LoadedTexture | Sprite, options?: SpriteOptions) {
+    constructor(s: Sprite, options?: Partial<SpriteOptions>);
+    constructor(
+        texOrSprite: LoadedTexture | Sprite,
+        options?: SpriteOptions | Partial<SpriteOptions>
+    ) {
         if (texOrSprite instanceof Sprite) {
             this.texture = texOrSprite.texture;
-            this.sourceBounds = new RectangleBounds(texOrSprite.sourceBounds);
+            this.sourceBounds =
+                options?.source ||
+                new RectangleBounds(texOrSprite.sourceBounds);
             this.destinationBounds = new RectangleBounds(
                 texOrSprite.destinationBounds
             );
-            this.tint = texOrSprite.tint;
-            this.cachedImage = new Image();
+            this.filters = options?.filters || texOrSprite.filters;
+            this.cache();
         } else if (texOrSprite instanceof LoadedTexture && options) {
             this.texture = texOrSprite;
+            if (!options.source)
+                throw "Source should be provided if you use LoadedTexture sprite constructor!";
             this.sourceBounds = options.source;
             this.destinationBounds =
                 options.destinationBounds ||
@@ -68,70 +68,32 @@ export class Sprite implements Renderable {
                     this.sourceBounds.width,
                     this.sourceBounds.height
                 );
-            this.tint =
-                colorDataToString(colorToRGBA(options?.tint)) || "transparent";
-            this.cachedImage = new Image();
-            if (options?.cacheTints) this.recache(options.cacheTints);
-            else this.cacheImage(this.tint, true);
-            this.staleCache = false;
-            this.cachedImage.onerror = () => (this.staleCache = true);
+            this.filters = options.filters || [];
+            this.cache();
         } else {
             throw "Incorrect Sprite constructor";
         }
     }
-    async recache(tints: true | string[]) {
-        this.cacheColoredImages(true, tints === true ? undefined : tints);
-    }
-    async cacheColoredImages(force = false, tints?: string[]) {
-        const pTint = this.tint;
-        const colors = tints || Object.values(TileColor);
-        for (let i = 0; i < colors.length; i++) {
-            this.tint = colors[i];
-            await this.cacheImage(this.tint, force);
-        }
-        this.tint = pTint;
-        this.staleCache = false;
-    }
-    async cacheImage(tint?: string, force: boolean = false) {
-        const imgFromCache = Sprite.getImageFromCache(this.getCacheID(tint));
-        if (imgFromCache && !force) {
-            if (this.cachedImage !== imgFromCache)
-                this.cachedImage = imgFromCache;
-        } else {
-            const textureImg = await this.texture.toImage(
-                this.sourceBounds.x,
-                this.sourceBounds.y,
-                this.sourceBounds.width,
-                this.sourceBounds.height
-            );
-            const img = new Image();
-            img.src = await this.applyTint(textureImg, tint);
-            this.cachedImage = Sprite.saveImageToCache(
-                this.getCacheID(tint),
-                img
-            );
-        }
+
+    async cache() {
+        return (this.cachedData = await this.texture.toImage(
+            this.source.x,
+            this.source.y,
+            this.source.width,
+            this.source.height
+        ));
     }
 
-    async applyTint(img: ImageBitmap, tint?: string) {
-        return applyTintToBitmap(img, tint || this.tint);
+    addFilter(
+        id: string,
+        { pre, post }: { pre?: FilterFunction; post?: FilterFunction }
+    ) {
+        if (this.filters.find((x) => x.id === id)) return;
+        this.filters.push({ id, pre, post });
     }
 
-    getCacheID(tint?: string) {
-        return `${this.texture.id}:${this.sourceBounds.x}/${
-            this.sourceBounds.y
-        }/${this.sourceBounds.width}/${this.sourceBounds.height}_${
-            tint || this.tint
-        }`;
-    }
-
-    getFromStorageSync() {
-        return Sprite.getImageFromCache(this.getCacheID()) || this.cachedImage;
-    }
-
-    async setTint(t: string) {
-        if (colorToRGBA(t)) this.tint = t;
-        await this.cacheImage(t);
+    removeFilter(id: string) {
+        this.filters = this.filters.filter((f) => f.id !== id);
     }
 
     moveTo(x: number, y: number): void;
@@ -157,15 +119,24 @@ export class Sprite implements Renderable {
             );
         }
     }
-    changeCrop(sx: number, sy: number, sw: number, sh: number) {
+    clip(sx: number, sy: number, sw: number, sh: number) {
         this.sourceBounds = new RectangleBounds(sx, sy, sw, sh);
-        this.staleCache = true;
+        this.cache();
     }
+
     async render(ctx: CanvasRenderingContext2D) {
-        if (this.staleCache) {
-            await this.cacheImage();
-        }
+        if (!this.cachedData) this.cachedData = await this.cache();
         const { x, y, width: w, height: h } = this.destinationBounds;
-        ctx.drawImage(this.cachedImage, x, y, w, h);
+        ctx.save();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+        this.filters.forEach((c) => {
+            c.pre?.(ctx);
+        });
+        ctx.drawImage(this.cachedData, x, y, w, h);
+        this.filters.forEach((c) => {
+            c.post?.(ctx);
+        });
+        ctx.restore();
     }
 }

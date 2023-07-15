@@ -1,5 +1,5 @@
 import { BoundedGameObject } from "@components/GameObject";
-import { CanAnimate } from "@animation";
+import { CanAnimate } from "@components/Animation/animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
 import { Vector2 } from "@utils";
 import { Sprite } from "@primitives/Sprite/Sprite";
@@ -45,7 +45,6 @@ export class AnimatedSprite extends BoundedGameObject implements CanAnimate {
     async render(ctx: CanvasRenderingContext2D) {
         if (this.frame > this.sprites.length - 1) return;
         const sprite = this.sprites[this.frame];
-        if (sprite.staleCache) await sprite.cacheImage(undefined, true);
         sprite.moveTo(
             new RectangleBounds(
                 this.bounds.x + this.offsetXY[0],

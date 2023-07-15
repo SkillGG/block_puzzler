@@ -1,8 +1,8 @@
 import { Vector2, Vector_2, noop } from "@utils";
 import { Tile, TileColor } from "./tile";
-import { AnimatableTile } from "@components/Animation/animatedTile";
+import { AnimatableTile } from "@components/Animation/objects/animatedTile";
 import { HoverAnimation } from "@components/Animation/Hover/hover";
-import { AnimatedSprite } from "@components/Animation/animatedSprite";
+import { AnimatedSprite } from "@components/Animation/objects/animatedSprite";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { oTILE_Z } from "@/utils/zLayers";
 export class GameTile extends AnimatableTile {
@@ -54,6 +54,22 @@ export class GameTile extends AnimatableTile {
                     h - 2 * this.padding
                 )
             );
+            if (this.selected)
+                this.sprite.addFilter("selected", {
+                    post: (c) => {
+                        c.globalCompositeOperation = "darken";
+                        c.globalAlpha = 0.2;
+                        c.fillStyle = "black";
+                        c.rect(
+                            x + this.padding,
+                            y + this.padding,
+                            w - 2 * this.padding,
+                            h - 2 * this.padding
+                        );
+                        c.fill();
+                        c.globalCompositeOperation = "source-over";
+                    },
+                });
             await this.sprite.render(ctx);
         } else {
             ctx.fillStyle = this.color;
@@ -67,25 +83,11 @@ export class GameTile extends AnimatableTile {
             );
             ctx.fill();
         }
-        if (this.selected) {
-            ctx.globalCompositeOperation = "darken";
-            ctx.globalAlpha = 0.2;
-            ctx.fillStyle = "black";
-            ctx.fillRect(
-                x + this.padding,
-                y + this.padding,
-                w - 2 * this.padding,
-                h - 2 * this.padding
-            );
-            ctx.globalCompositeOperation = "source-over";
-        }
 
         if (this.isHovered && this.color !== TileColor.NONE) {
             this.hoverAnimation.bounds = this.bounds;
             await this.hoverAnimation.render(ctx);
         }
-
-        if (this.color !== TileColor.NONE) ctx.stroke();
 
         if (
             this.willBecome !== TileColor.NONE &&

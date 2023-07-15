@@ -1,6 +1,6 @@
-import { Tile, TileColor, TileEvents } from "@components/Playfield/Tile/tile";
-import { CanAnimate } from "./animation";
+import { CanAnimate } from "@components/Animation/animation";
 import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBounds";
+import { Tile, TileColor, TileEvents } from "@components/Playfield/Tile/tile";
 import { Vector2, noop } from "@utils";
 import { Game } from "@/game";
 import { oANIMATEDTILE_Z } from "@/utils/zLayers";
@@ -95,8 +95,6 @@ export class AnimatableTile extends Tile implements CanAnimate {
             );
             ctx.globalCompositeOperation = "source-over";
         }
-        if (this.color !== TileColor.NONE) ctx.stroke();
-
         if (this.color !== TileColor.NONE && this.isHovered) {
             ctx.fillStyle = "white";
             ctx.fillRect(x + w / 2 - 5, y + h / 2 - 5, 10, 10);

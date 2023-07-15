@@ -9,6 +9,7 @@ import { GameOverScreen } from "./gameOverScreen";
 import { BreakingAnimation } from "@components/Animation/Break/break";
 import { MovingAnimation } from "@components/Animation/Move/move";
 import { Game } from "@/game";
+import { LevelSliderAnimation } from "@components/Animation/LevelSlider/levelSlider";
 
 export class Playfield extends StateManager<GameState> {
     static DefaultID = "playfield";
@@ -18,12 +19,18 @@ export class Playfield extends StateManager<GameState> {
 
     map: PlayMap;
     gameOverScreen: GameOverScreen;
+    sliderAnimation: LevelSliderAnimation.animation;
 
     constructor(manager: ObjectManager<GameState>) {
         super(Playfield.DefaultID, manager, GameState.GAME);
         this.map = new PlayMap({ x: "center", y: 75 }, this);
         this.gameOverScreen = new GameOverScreen(this);
         this.manager.addStateManager(this.gameOverScreen);
+        this.sliderAnimation = new LevelSliderAnimation.animation(
+            "lvlSlider",
+            () => {},
+            GameSettings.instance.manager.levelSlider
+        );
     }
 
     get moveNumber() {
@@ -98,6 +105,7 @@ export class Playfield extends StateManager<GameState> {
             },
             c[0]
         );
+        anim.startAnimation();
         this.animations.push(animNum);
         this.manager.addStateManager(anim);
         anim.registerObjects();
@@ -116,6 +124,7 @@ export class Playfield extends StateManager<GameState> {
             },
             p
         );
+        anim.startAnimation();
         this.animations.push(animNum);
         this.manager.addStateManager(anim);
         anim.registerObjects();
@@ -125,6 +134,8 @@ export class Playfield extends StateManager<GameState> {
         this.init(ms);
         GameSettings.instance.gameRestarted();
         this.map.start();
+        this.manager.addStateManager(this.sliderAnimation);
+        this.sliderAnimation.startAnimation();
     }
 
     restartGame(mapSize: number) {
