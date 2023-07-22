@@ -63,7 +63,7 @@ export class Slider extends BoundedGameObject implements Hideable {
         ctx.fill();
         ctx.closePath();
     }
-    async update(t: number): Promise<void> {
+    async update(_: number): Promise<void> {
         if (this.#hidden) return;
     }
     #hidden = false;

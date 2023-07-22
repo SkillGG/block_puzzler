@@ -70,6 +70,7 @@ export class GameTile extends AnimatableTile {
                         c.globalCompositeOperation = "source-over";
                     },
                 });
+            else this.sprite.removeFilter("selected");
             await this.sprite.render(ctx);
         } else {
             ctx.fillStyle = this.color;

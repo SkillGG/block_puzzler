@@ -35,6 +35,9 @@ export namespace MovingAnimation {
     export class animation extends GameAnimation<AnimatableTile[]> {
         pathLines: PathLine[] = [];
 
+        traveled = 0;
+
+        blendT = 0;
         totalDistance: number = 0;
 
         constructor(
@@ -138,10 +141,6 @@ export namespace MovingAnimation {
                 } else return p + line.distance;
             }, 0);
         }
-
-        traveled = 0;
-
-        blendT = 0;
 
         async renderAnimation(_: CanvasRenderingContext2D): Promise<void> {}
 

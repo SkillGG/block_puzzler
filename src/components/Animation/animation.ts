@@ -1,10 +1,7 @@
 import { GameState } from "@/main";
-import { Tile } from "@components/Playfield/Tile/tile";
 import { StateManager } from "@components/StateManager";
 import { Vector2 } from "@utils";
-import { AnimatableTile } from "@components/Animation/objects/animatedTile";
 import { Game } from "@/game";
-import { AnimatedSprite } from "@components/Animation/objects/animatedSprite";
 import { GameObject } from "@components/GameObject";
 
 export interface CanAnimate {

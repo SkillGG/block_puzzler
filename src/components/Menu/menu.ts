@@ -61,7 +61,7 @@ export class GameMenu extends StateManager<GameState> {
                     e.target.label.border.style.fillColor = "transparent";
                 },
             },
-            "START",
+            "START  ",
             buttonStyle,
             zIndex
         );

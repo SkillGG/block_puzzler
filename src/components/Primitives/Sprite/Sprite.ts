@@ -1,4 +1,4 @@
-import { Renderable, colorToRGBA } from "@utils";
+import { Renderable } from "@utils";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { LoadedTexture } from "@primitives/Texture/loadedTexture";
 

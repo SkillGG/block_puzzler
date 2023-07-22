@@ -16,7 +16,7 @@ import { GameSettings } from "@/UI";
 import { Rectangle } from "@primitives/Rectangle/Rectangle";
 import { RectangleBounds } from "@primitives/Rectangle/RectangleBounds";
 import { GameTile } from "../Tile/gameTile";
-import { oTILE_Z } from "@/utils/zLayers";
+import { oBORDER_Z, oTILE_Z } from "@/utils/zLayers";
 
 type alignableVector_2 = Record<"x" | "y", "center" | number>;
 
@@ -86,7 +86,7 @@ export class PlayMap implements Updateable {
             strokeColor: "black",
             strokeWidth: 2,
         },
-        2
+        oBORDER_Z
     );
 
     _newColors: [TileCoords, TileColor][] = [];

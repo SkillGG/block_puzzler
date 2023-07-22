@@ -6,7 +6,6 @@ import { RectangleBounds } from "@components/Primitives/Rectangle/RectangleBound
 import { Game } from "./game";
 import { Playfield } from "@components/Playfield/playfield";
 import { Button } from "@components/Primitives/Button/Button";
-import { Slider } from "@primitives/Slider/Slider";
 import { mUI_Z } from "./utils/zLayers";
 import { Hideable } from "@utils";
 import { BoundedGameObject } from "@components/GameObject";
